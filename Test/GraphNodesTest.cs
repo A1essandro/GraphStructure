@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using GraphStructure;
+using GraphStructure.Nodes;
 using Xunit;
 
 namespace Test
@@ -22,23 +23,21 @@ namespace Test
             var graph = new Graph<int>();
 
             await Task.WhenAll(
-                graph.AddNodeAsync(new Node<int>()),
-                graph.AddNodeAsync(new Node<int>()),
-                graph.AddNodeAsync(new Node<int>()),
-                graph.AddNodeAsync(new Node<int>()),
-                graph.AddNodeAsync(new Node<int>()),
-                graph.AddNodesAsync(new Node<int>[] { new Node<int>(), new Node<int>() })
+                graph.AddAsync(new Node<int>()),
+                graph.AddAsync(new Node<int>()),
+                graph.AddAsync(new Node<int>()),
+                graph.AddAsync(new Node<int>()),
+                graph.AddAsync(new Node<int>())
             );
 
-            graph.AddNodes(new Node<int>[] { new Node<int>(), new Node<int>() });
-            graph.AddNode(new Node<int>());
+            await graph.AddAsync(new Node<int>());
+            graph.Add(new Node<int>());
 
-            Assert.Equal(10, graph.Nodes.Count);
+            Assert.Equal(7, graph.Nodes.Count);
 
             var node = new Node<int>();
-            Assert.Throws<ArgumentException>(() => graph.AddNodes(new Node<int>[] { node, node }));
-            await graph.AddNodeAsync(node);
-            Assert.Throws<ArgumentException>(() => graph.AddNode(node));
+            await graph.AddAsync(node);
+            Assert.Throws<ArgumentException>(() => graph.Add(node));
         }
 
         [Fact]
@@ -51,10 +50,10 @@ namespace Test
             var node3 = new Node<int>();
 
             await Task.WhenAll(
-                graph.AddNodeAsync(node0),
-                graph.AddNodeAsync(node1),
-                graph.AddNodeAsync(node2),
-                graph.AddNodeAsync(node3)
+                graph.AddAsync(node0),
+                graph.AddAsync(node1),
+                graph.AddAsync(node2),
+                graph.AddAsync(node3)
             );
 
             graph.RemoveNode(new Node<int>()); //no action

@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using GraphStructure.Common;
+using GraphStructure.Edges;
+using GraphStructure.Nodes;
 using Nito.AsyncEx;
 
 namespace GraphStructure
@@ -10,95 +13,44 @@ namespace GraphStructure
     {
 
         public IReadOnlyCollection<Node<T>> Nodes => _nodes.AsReadOnly();
+        public IReadOnlyCollection<IEdge<T>> Edges => _edges.AsReadOnly();
 
-        private AsyncReaderWriterLock _rwLock = new AsyncReaderWriterLock();
         private List<Node<T>> _nodes = new List<Node<T>>();
+        private List<IEdge<T>> _edges = new List<IEdge<T>>();
+        private AsyncReaderWriterLock _rwNodesLock = new AsyncReaderWriterLock();
+        private AsyncReaderWriterLock _rwEdgesLock = new AsyncReaderWriterLock();
 
         public Graph()
         {
 
         }
 
+        public Graph(IEnumerable<IEdge<T>> edges)
+        {
+            var tasks = edges.Select(edge => AddAsync(edge)).ToArray();
+            Task.WaitAll(tasks);
+        }
+
+        public Graph(params IEdge<T>[] edges) : this(edges.AsEnumerable())
+        {
+        }
+
         #region Add Nodes
 
-        public Graph<T> AddNode(Node<T> node)
+        public Graph<T> Add(Node<T> node)
         {
-            _checkSameReference(node);
-
-            using (_rwLock.WriterLock())
-            {
-                _nodes.Add(node);
-            }
+            _nodes.ThrowIfContainsWithLock(node, _rwNodesLock);
+            _nodes.AddWithLock(node, _rwNodesLock);
 
             return this;
         }
 
-        public Graph<T> AddNodes(IEnumerable<Node<T>> nodes)
+        public async Task<Graph<T>> AddAsync(Node<T> node)
         {
-            _checkDuplicates(nodes);
-            nodes.AsParallel().ForAll(async (node) => await _checkSameReferenceAsync(node));
-
-            using (_rwLock.WriterLock())
-            {
-                _nodes.AddRange(nodes);
-            }
+            await _nodes.ThrowIfContainsWithLockAsync(node, _rwNodesLock);
+            await _nodes.AddWithLockAsync(node, _rwNodesLock);
 
             return this;
-        }
-
-        public async Task<Graph<T>> AddNodeAsync(Node<T> node)
-        {
-            await _checkSameReferenceAsync(node);
-
-            using (await _rwLock.WriterLockAsync())
-            {
-                _nodes.Add(node);
-            }
-
-            return this;
-        }
-
-        public async Task<Graph<T>> AddNodesAsync(IEnumerable<Node<T>> nodes)
-        {
-            _checkDuplicates(nodes);
-            nodes.AsParallel().ForAll(async (node) => await _checkSameReferenceAsync(node));
-
-            using (await _rwLock.WriterLockAsync())
-            {
-                _nodes.AddRange(nodes);
-            }
-
-            return this;
-        }
-
-        private void _checkSameReference(Node<T> node)
-        {
-            using (_rwLock.ReaderLock())
-            {
-                if (_nodes.Contains(node))
-                {
-                    throw new ArgumentException();
-                }
-            }
-        }
-
-        private async Task _checkSameReferenceAsync(Node<T> node)
-        {
-            using (await _rwLock.ReaderLockAsync())
-            {
-                if (_nodes.Contains(node))
-                {
-                    throw new ArgumentException();
-                }
-            }
-        }
-
-        private void _checkDuplicates(IEnumerable<Node<T>> nodes)
-        {
-            if (nodes.Count() != nodes.Distinct().Count())
-            {
-                throw new ArgumentException();
-            }
         }
 
         #endregion
@@ -107,7 +59,7 @@ namespace GraphStructure
 
         public Graph<T> RemoveNode(int index)
         {
-            using (_rwLock.WriterLock())
+            using (_rwNodesLock.WriterLock())
             {
                 _nodes.Remove(_nodes[index]);
             }
@@ -117,7 +69,7 @@ namespace GraphStructure
 
         public async Task<Graph<T>> RemoveNodeAsync(int index)
         {
-            using (await _rwLock.WriterLockAsync())
+            using (await _rwNodesLock.WriterLockAsync())
             {
                 _nodes.Remove(_nodes[index]);
             }
@@ -127,7 +79,7 @@ namespace GraphStructure
 
         public Graph<T> RemoveNode(Node<T> node)
         {
-            using (_rwLock.WriterLock())
+            using (_rwNodesLock.WriterLock())
             {
                 _nodes.Remove(node);
             }
@@ -137,9 +89,47 @@ namespace GraphStructure
 
         public async Task<Graph<T>> RemoveNodeAsync(Node<T> node)
         {
-            using (await _rwLock.WriterLockAsync())
+            using (await _rwNodesLock.WriterLockAsync())
             {
                 _nodes.Remove(node);
+            }
+
+            return this;
+        }
+
+        #endregion
+
+        #region Add edges
+
+        public Graph<T> Add(IEdge<T> edge)
+        {
+            _edges.ThrowIfContainsWithLock(edge, _rwEdgesLock);
+            _edges.AddWithLock(edge, _rwEdgesLock);
+
+            if (!_nodes.ContainsWithLock(edge.Nodes.Item1, _rwNodesLock))
+            {
+                _nodes.AddWithLock(edge.Nodes.Item1, _rwNodesLock);
+            }
+            if (!_nodes.ContainsWithLock(edge.Nodes.Item2, _rwNodesLock))
+            {
+                _nodes.AddWithLock(edge.Nodes.Item2, _rwNodesLock);
+            }
+
+            return this;
+        }
+
+        public async Task<Graph<T>> AddAsync(IEdge<T> edge)
+        {
+            _edges.ThrowIfContainsWithLock(edge, _rwEdgesLock);
+            _edges.AddWithLock(edge, _rwEdgesLock);
+
+            if (!await _nodes.ContainsWithLockAsync(edge.Nodes.Item1, _rwNodesLock))
+            {
+                await _nodes.AddWithLockAsync(edge.Nodes.Item1, _rwNodesLock);
+            }
+            if (!await _nodes.ContainsWithLockAsync(edge.Nodes.Item2, _rwNodesLock))
+            {
+                await _nodes.AddWithLockAsync(edge.Nodes.Item2, _rwNodesLock);
             }
 
             return this;
