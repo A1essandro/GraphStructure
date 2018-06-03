@@ -14,6 +14,8 @@ namespace GraphStructure
 
         public IReadOnlyCollection<Node<T>> Nodes => _nodes.AsReadOnly();
         public IReadOnlyCollection<IEdge<T>> Edges => _edges.AsReadOnly();
+        public int Size => _edges.Count;
+        public int Order => _nodes.Count;
 
         private List<Node<T>> _nodes = new List<Node<T>>();
         private List<IEdge<T>> _edges = new List<IEdge<T>>();
@@ -59,47 +61,35 @@ namespace GraphStructure
 
         public Graph<T> RemoveNode(int index)
         {
-            using (_rwNodesLock.WriterLock())
-            {
-                _nodes.Remove(_nodes[index]);
-            }
+            _nodes.RemoveWithLock(_nodes[index], _rwNodesLock);
 
             return this;
         }
 
         public async Task<Graph<T>> RemoveNodeAsync(int index)
         {
-            using (await _rwNodesLock.WriterLockAsync())
-            {
-                _nodes.Remove(_nodes[index]);
-            }
+            await _nodes.RemoveWithLockAsync(_nodes[index], _rwNodesLock);
 
             return this;
         }
 
-        public Graph<T> RemoveNode(Node<T> node)
+        public Graph<T> Remove(Node<T> node)
         {
-            using (_rwNodesLock.WriterLock())
-            {
-                _nodes.Remove(node);
-            }
+            _nodes.RemoveWithLock(node, _rwNodesLock);
 
             return this;
         }
 
-        public async Task<Graph<T>> RemoveNodeAsync(Node<T> node)
+        public async Task<Graph<T>> RemoveAsync(Node<T> node)
         {
-            using (await _rwNodesLock.WriterLockAsync())
-            {
-                _nodes.Remove(node);
-            }
+            await _nodes.RemoveWithLockAsync(node, _rwNodesLock);
 
             return this;
         }
 
         #endregion
 
-        #region Add edges
+        #region Add Edges
 
         public Graph<T> Add(IEdge<T> edge)
         {
@@ -135,6 +125,42 @@ namespace GraphStructure
             }
 
             edge.Connect();
+
+            return this;
+        }
+
+        #endregion
+
+        #region Remove Edges
+
+        public Graph<T> RemoveEdge(int index)
+        {
+            _edges[index].Disconnect();
+            _edges.RemoveWithLock(_edges[index], _rwEdgesLock);
+
+            return this;
+        }
+
+        public async Task<Graph<T>> RemoveEdgeAsync(int index)
+        {
+            _edges[index].Disconnect();
+            await _edges.RemoveWithLockAsync(_edges[index], _rwEdgesLock);
+
+            return this;
+        }
+
+        public Graph<T> Remove(IEdge<T> edge)
+        {
+            edge.Disconnect();
+            _edges.RemoveWithLock(edge, _rwEdgesLock);
+
+            return this;
+        }
+
+        public async Task<Graph<T>> RemoveAsync(IEdge<T> edge)
+        {
+            edge.Disconnect();
+            await _edges.RemoveWithLockAsync(edge, _rwEdgesLock);
 
             return this;
         }

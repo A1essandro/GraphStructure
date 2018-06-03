@@ -10,5 +10,7 @@ namespace GraphStructure.Edges
 
         void Connect();
 
+        void Disconnect();
+
     }
 }

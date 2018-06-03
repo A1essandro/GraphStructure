@@ -34,10 +34,24 @@ namespace GraphStructure.Nodes
             return this;
         }
 
+        internal Node<T> RemoveSlave(Node<T> node)
+        {
+            _slaveNodes.RemoveWithLock(node, _rwSlaveLock);
+
+            return this;
+        }
+
         internal Node<T> AddMaster(Node<T> node)
         {
             _masterNodes.ThrowIfContainsWithLock(node, _rwMasterLock);
             _masterNodes.AddWithLock(node, _rwMasterLock);
+
+            return this;
+        }
+
+        internal Node<T> RemoveMaster(Node<T> node)
+        {
+            _masterNodes.RemoveWithLock(node, _rwMasterLock);
 
             return this;
         }

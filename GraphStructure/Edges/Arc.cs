@@ -18,5 +18,11 @@ namespace GraphStructure.Edges
             Nodes.Item2.AddMaster(Nodes.Item1);
         }
 
+        public void Disconnect()
+        {
+            Nodes.Item1.RemoveSlave(Nodes.Item2);
+            Nodes.Item2.RemoveMaster(Nodes.Item1);
+        }
+
     }
 }

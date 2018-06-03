@@ -56,18 +56,18 @@ namespace Test
                 graph.AddAsync(node3)
             );
 
-            graph.RemoveNode(new Node<int>()); //no action
+            graph.Remove(new Node<int>()); //no action
             Assert.Equal(4, graph.Nodes.Count);
 
-            await graph.RemoveNodeAsync(node0);
+            await graph.RemoveAsync(node0);
             Assert.Throws<ArgumentOutOfRangeException>(() => graph.RemoveNode(3));
             Assert.Equal(3, graph.Nodes.Count);
 
             await graph.RemoveNodeAsync(2);
             Assert.Equal(2, graph.Nodes.Count);
 
-            await graph.RemoveNodeAsync(node3); //no action
-            graph.RemoveNode(node1);
+            await graph.RemoveAsync(node3); //no action
+            graph.Remove(node1);
             Assert.Equal(1, graph.Nodes.Count);
 
             graph.RemoveNode(0);

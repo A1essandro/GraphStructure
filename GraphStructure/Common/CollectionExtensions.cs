@@ -56,5 +56,21 @@ namespace GraphStructure.Common
             }
         }
 
+        internal static void RemoveWithLock<T>(this ICollection<T> collection, T item, AsyncReaderWriterLock rwLock)
+        {
+            using (rwLock.WriterLock())
+            {
+                collection.Remove(item);
+            }
+        }
+
+        internal static async Task RemoveWithLockAsync<T>(this ICollection<T> collection, T item, AsyncReaderWriterLock rwLock)
+        {
+            using (await rwLock.WriterLockAsync())
+            {
+                collection.Remove(item);
+            }
+        }
+
     }
 }
