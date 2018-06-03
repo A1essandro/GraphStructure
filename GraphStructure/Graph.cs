@@ -115,6 +115,8 @@ namespace GraphStructure
                 _nodes.AddWithLock(edge.Nodes.Item2, _rwNodesLock);
             }
 
+            edge.Connect();
+
             return this;
         }
 
@@ -131,6 +133,8 @@ namespace GraphStructure
             {
                 await _nodes.AddWithLockAsync(edge.Nodes.Item2, _rwNodesLock);
             }
+
+            edge.Connect();
 
             return this;
         }
