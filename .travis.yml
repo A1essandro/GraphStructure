@@ -13,3 +13,10 @@ script:
 
 after_script:
         - bash <(curl -s https://codecov.io/bash)
+
+deploy:
+    skip_cleanup: true
+    provider: script
+    script: chmod +x ./deploy/deploy.sh && ./deploy/deploy.sh $NUGET_API_KEY
+    on:
+        branch: master
