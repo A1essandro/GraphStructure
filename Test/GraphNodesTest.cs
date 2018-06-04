@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using GraphStructure;
 using GraphStructure.Nodes;
@@ -37,6 +38,7 @@ namespace Test
 
             var node = new Node<int>();
             await graph.AddAsync(node);
+            Assert.Equal(7, graph.Nodes.Select(x => x).ToList().IndexOf(node));
             Assert.Throws<ArgumentException>(() => graph.Add(node));
         }
 
