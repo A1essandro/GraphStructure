@@ -7,8 +7,11 @@ namespace GraphStructure.Edges
     {
         public Tuple<Node<T>, Node<T>> Nodes { get; }
 
-        public Arc(Node<T> node1, Node<T> node2)
+        public int Cost { get; }
+
+        public Arc(Node<T> node1, Node<T> node2, int cost = 1)
         {
+            Cost = cost;
             Nodes = new Tuple<Node<T>, Node<T>>(node1, node2);
         }
 
