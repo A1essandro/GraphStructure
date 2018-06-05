@@ -4,9 +4,16 @@
     <PackageId>GraphStructure</PackageId>
     <Version>$(PackageVersion)</Version>
     <Authors>Alexander Yermakov</Authors>
-    <Company>Alexander Yermakov</Company>
+    <PackageTags>graph;path searching</PackageTags>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/A1essandro/GraphStructure/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/A1essandro/GraphStructure</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/A1essandro/GraphStructure.git</RepositoryUrl>
+    <RootNamespace>GraphStructure</RootNamespace>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Nito.AsyncEx" Version="5.0.0-pre-05"/>
   </ItemGroup>
+
 </Project>
