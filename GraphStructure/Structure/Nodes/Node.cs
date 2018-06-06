@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using GraphStructure.Common;
 using Nito.AsyncEx;
 
-namespace GraphStructure.Nodes
+namespace GraphStructure.Structure.Nodes
 {
 
     public class Node<T>

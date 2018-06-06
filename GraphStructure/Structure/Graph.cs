@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using GraphStructure.Common;
-using GraphStructure.Edges;
-using GraphStructure.Nodes;
+using GraphStructure.Structure.Edges;
+using GraphStructure.Structure.Nodes;
 using Nito.AsyncEx;
 
-namespace GraphStructure
+namespace GraphStructure.Structure
 {
     public class Graph<T>
     {

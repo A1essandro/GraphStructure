@@ -1,7 +1,7 @@
 using System;
-using GraphStructure.Nodes;
+using GraphStructure.Structure.Nodes;
 
-namespace GraphStructure.Edges
+namespace GraphStructure.Structure.Edges
 {
     public interface IEdge<T>
     {

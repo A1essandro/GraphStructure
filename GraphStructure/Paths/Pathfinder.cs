@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using GraphStructure.Common;
-using GraphStructure.Nodes;
+using GraphStructure.Structure.Nodes;
+using GraphStructure.Structure;
 using Nito.AsyncEx;
+using GraphStructure.Common;
 
-namespace GraphStructure
+namespace GraphStructure.Paths
 {
 
     public class Pathfinder<T>

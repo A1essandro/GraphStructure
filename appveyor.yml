@@ -1,4 +1,4 @@
-version: 0.1.1-alpha.{build}
+version: 0.2.0-alpha.{build}
 image: Visual Studio 2017
 dotnet_csproj:
   version: "{version}"

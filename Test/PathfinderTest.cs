@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using GraphStructure;
-using GraphStructure.Edges;
-using GraphStructure.Nodes;
+using GraphStructure.Paths;
+using GraphStructure.Structure;
+using GraphStructure.Structure.Edges;
+using GraphStructure.Structure.Nodes;
 using Xunit;
 
 namespace Test
