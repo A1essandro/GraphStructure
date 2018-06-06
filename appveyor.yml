@@ -10,4 +10,5 @@ deploy:
     secure: 4HWYue95aIcpxcp09bhEMf+3D6JHfKP+dQbSxf5ba0FvN1NK+3W7KWKi0YZZBjAd
   artifact: /.*\.nupkg/
   on:
-    appveor_repo_tag: true
+    #appveor_repo_tag: true
+    branch: master
