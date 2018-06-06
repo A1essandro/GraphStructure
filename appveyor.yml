@@ -9,7 +9,7 @@ build:
   verbosity: normal
   # publish_nuget: true
 after_build:
-- cmd: dotnet pack GraphStructure -v=n /p:Configuration=Release
+- cmd: dotnet pack GraphStructure -v=n /p:Configuration=Release /p:PackageVersion=%APPVEYOR_BUILD_VERSION%
 artifacts:
 - path: '**\*.nupkg'
   name: NuGet Packages
