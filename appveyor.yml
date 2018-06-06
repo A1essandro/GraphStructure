@@ -1,0 +1,13 @@
+version: 0.1.1-alpha.{build}
+image: Visual Studio 2017
+before_build:
+- cmd: dotnet restore
+build:
+  verbosity: normal
+deploy:
+  provider: NuGet
+  api_key:
+    secure: 4HWYue95aIcpxcp09bhEMf+3D6JHfKP+dQbSxf5ba0FvN1NK+3W7KWKi0YZZBjAd
+  artifact: /.*\.nupkg/
+  on:
+    appveor_repo_tag: true
