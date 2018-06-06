@@ -47,6 +47,11 @@ namespace GraphStructure
 
         #region Add Nodes
 
+        /// <summary>
+        /// Synchronous addition of the node (synchronous lock of nodes list)
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
         public Graph<T> Add(Node<T> node)
         {
             _nodes.ThrowIfContainsWithLock(node, _rwNodesLock);
@@ -55,6 +60,11 @@ namespace GraphStructure
             return this;
         }
 
+        /// <summary>
+        /// Asynchronous addition of the node (asynchronous lock of nodes list)
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
         public async Task<Graph<T>> AddAsync(Node<T> node)
         {
             await _nodes.ThrowIfContainsWithLockAsync(node, _rwNodesLock);
@@ -67,6 +77,11 @@ namespace GraphStructure
 
         #region Remove Nodes
 
+        /// <summary>
+        /// Synchronous remove of node by the index (synchronous lock of nodes list)
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         public Graph<T> RemoveNode(int index)
         {
             _nodes.RemoveWithLock(_nodes[index], _rwNodesLock);
@@ -74,6 +89,11 @@ namespace GraphStructure
             return this;
         }
 
+        /// <summary>
+        /// Asynchronous remove of node by the index (asynchronous lock of nodes list)
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         public async Task<Graph<T>> RemoveNodeAsync(int index)
         {
             await _nodes.RemoveWithLockAsync(_nodes[index], _rwNodesLock);
@@ -81,6 +101,11 @@ namespace GraphStructure
             return this;
         }
 
+        /// <summary>
+        /// Synchronous remove of node by the referense (synchronous lock of nodes list)
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
         public Graph<T> Remove(Node<T> node)
         {
             _nodes.RemoveWithLock(node, _rwNodesLock);
@@ -88,6 +113,11 @@ namespace GraphStructure
             return this;
         }
 
+        /// <summary>
+        /// Asynchronous remove of node by the referense (asynchronous lock of nodes list)
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
         public async Task<Graph<T>> RemoveAsync(Node<T> node)
         {
             await _nodes.RemoveWithLockAsync(node, _rwNodesLock);
@@ -99,6 +129,11 @@ namespace GraphStructure
 
         #region Add Edges
 
+        /// <summary>
+        /// Synchronous addition of the edge (synchronous lock of edges list)
+        /// </summary>
+        /// <param name="edge"></param>
+        /// <returns></returns>
         public Graph<T> Add(IEdge<T> edge)
         {
             _edges.ThrowIfContainsWithLock(edge, _rwEdgesLock);
@@ -118,6 +153,11 @@ namespace GraphStructure
             return this;
         }
 
+        /// <summary>
+        /// Asynchronous addition of the edge (asynchronous lock of edges list)
+        /// </summary>
+        /// <param name="edge"></param>
+        /// <returns></returns>
         public async Task<Graph<T>> AddAsync(IEdge<T> edge)
         {
             _edges.ThrowIfContainsWithLock(edge, _rwEdgesLock);
@@ -141,6 +181,11 @@ namespace GraphStructure
 
         #region Remove Edges
 
+        /// <summary>
+        /// Remove edge (or arc) by the index (synchronous lock of edges list)
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         public Graph<T> RemoveEdge(int index)
         {
             _edges[index].Disconnect();
@@ -149,6 +194,11 @@ namespace GraphStructure
             return this;
         }
 
+        /// <summary>
+        /// Asynchronous remove of edge (or arc) by the index (asynchronous lock of edges list)
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         public async Task<Graph<T>> RemoveEdgeAsync(int index)
         {
             _edges[index].Disconnect();
@@ -157,6 +207,11 @@ namespace GraphStructure
             return this;
         }
 
+        /// <summary>
+        /// Remove edge (or arc) by the referense
+        /// </summary>
+        /// <param name="edge"></param>
+        /// <returns></returns>
         public Graph<T> Remove(IEdge<T> edge)
         {
             edge.Disconnect();
@@ -165,6 +220,11 @@ namespace GraphStructure
             return this;
         }
 
+        /// <summary>
+        /// Asynchronous remove of edge (or arc) by the referense
+        /// </summary>
+        /// <param name="edge"></param>
+        /// <returns></returns>
         public async Task<Graph<T>> RemoveAsync(IEdge<T> edge)
         {
             edge.Disconnect();

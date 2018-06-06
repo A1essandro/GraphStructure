@@ -7,6 +7,7 @@ using Nito.AsyncEx;
 
 namespace GraphStructure
 {
+
     public class Pathfinder<T>
     {
 
@@ -17,6 +18,12 @@ namespace GraphStructure
             _graph = graph;
         }
 
+        /// <summary>
+        /// Search for all possible paths (without loops) between two nodes
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <returns></returns>
         public async Task<IEnumerable<List<int>>> GetAllBetween(int from, int to)
         {
             var reachibilityMatrix = await _graph.GetReachibilityMatrix();
@@ -32,6 +39,12 @@ namespace GraphStructure
             return await _fork(to, result, reachibilityMatrix, adjacencyMatrix);
         }
 
+        /// <summary>
+        /// Search for all possible paths (without loops) between two nodes
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <returns></returns>
         public async Task<IEnumerable<List<int>>> GetAllBetween(Node<T> from, Node<T> to)
         {
             var departureIndex = _graph.Nodes.Select(x => x).ToList().IndexOf(from);

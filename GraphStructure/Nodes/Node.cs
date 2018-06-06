@@ -9,7 +9,17 @@ namespace GraphStructure.Nodes
     {
 
         public T Data { get; set; }
+
+        /// <summary>
+        /// Collection of nodes where you can go directly from the current node
+        /// </summary>
+        /// <returns></returns>
         public IReadOnlyCollection<Node<T>> SlaveNodes => _slaveNodes.AsReadOnly();
+
+        /// <summary>
+        /// Сollection of nodes from which you can go directly to the current node
+        /// </summary>
+        /// <returns></returns>
         public IReadOnlyCollection<Node<T>> MasterNodes => _masterNodes.AsReadOnly();
 
         private List<Node<T>> _slaveNodes = new List<Node<T>>();
