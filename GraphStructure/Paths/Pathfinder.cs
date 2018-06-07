@@ -13,10 +13,12 @@ namespace GraphStructure.Paths
     {
 
         private readonly Graph<T> _graph;
+        private readonly MatrixCalculator<T> _matrixCalculator;
 
         public Pathfinder(Graph<T> graph)
         {
             _graph = graph;
+            _matrixCalculator = new MatrixCalculator<T>(_graph);
         }
 
         /// <summary>
@@ -28,8 +30,8 @@ namespace GraphStructure.Paths
         public async Task<IEnumerable<Path<T>>> GetAllBetween(int from, int to)
         {
             var nodeList = _graph.Nodes;
-            var reachibilityMatrix = await _graph.GetReachibilityMatrix();
-            var adjacencyMatrix = await _graph.GetAdjacencyMatrix();
+            var reachibilityMatrix = await _matrixCalculator.GetReachibilityMatrix();
+            var adjacencyMatrix = await _matrixCalculator.GetAdjacencyMatrix();
 
             var rawResult = new List<List<int>>();
             if (reachibilityMatrix[from, to] < 1)

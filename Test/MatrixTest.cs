@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using GraphStructure;
+using GraphStructure.Paths;
 using GraphStructure.Structure;
 using GraphStructure.Structure.Edges;
 using GraphStructure.Structure.Nodes;
@@ -31,7 +32,8 @@ namespace Test
         public async Task AdjacencyTest()
         {
             var graph = _getGraph();
-            var matrix = await graph.GetAdjacencyMatrix();
+            var calculator = new MatrixCalculator<int>(graph);
+            var matrix = await calculator.GetAdjacencyMatrix();
 
             var expectation = new int[,] {
                 { 1, 1, 0, 0 },
@@ -47,7 +49,8 @@ namespace Test
         public async Task ReachibilityTest()
         {
             var graph = _getGraph();
-            var matrix = await graph.GetReachibilityMatrix();
+            var calculator = new MatrixCalculator<int>(graph);
+            var matrix = await calculator.GetReachibilityMatrix();
 
             var expectation = new int[,] {
                 { 1, 1, 1, 1 },

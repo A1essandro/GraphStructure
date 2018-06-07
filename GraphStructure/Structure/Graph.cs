@@ -235,42 +235,5 @@ namespace GraphStructure.Structure
 
         #endregion
 
-        public async Task<int[,]> GetAdjacencyMatrix()
-        {
-            var matrix = new int[Order, Order];
-
-            using (await _rwNodesLock.ReaderLockAsync())
-            {
-                for (var x = 0; x < Order; x++)
-                {
-                    for (var y = 0; y < Order; y++)
-                    {
-                        var hasPath = _nodes[x].SlaveNodes.Contains(_nodes[y]);
-                        matrix[x, y] = hasPath ? 1 : 0;
-                    }
-                }
-            }
-
-            return matrix;
-        }
-
-        public async Task<int[,]> GetReachibilityMatrix()
-        {
-            var adjacencyMatrix = await GetAdjacencyMatrix();
-            return await Task.Run(() =>
-            {
-                var len = adjacencyMatrix.GetLength(0);
-                var result = (int[,])adjacencyMatrix.Clone();
-                var power = (int[,])adjacencyMatrix.Clone();
-
-                for (var pow = 0; pow < len; pow++)
-                {
-                    result = result.Or(power.Power(pow));
-                }
-
-                return result;
-            });
-        }
-
     }
 }
