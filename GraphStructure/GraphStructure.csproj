@@ -13,11 +13,9 @@
     <RepositoryUrl>https://github.com/A1essandro/GraphStructure.git</RepositoryUrl>
     <RootNamespace>GraphStructure</RootNamespace>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Condition="'$(TargetFramework)'!='net45'" Include="Nito.AsyncEx" Version="5.0.0-pre-05"/>
     <PackageReference Condition="'$(TargetFramework)'=='net45'" Include="Nito.AsyncEx" Version="4.*"/>
     <PackageReference Condition="'$(TargetFramework)'=='netstandard1.3'" Include="System.Linq.Parallel" Version="4.*"/>
   </ItemGroup>
-
 </Project>

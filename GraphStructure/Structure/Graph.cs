@@ -19,10 +19,10 @@ namespace GraphStructure.Structure
 
         #region Private fields
 
-        private List<Node<T>> _nodes = new List<Node<T>>();
-        private List<IEdge<T>> _edges = new List<IEdge<T>>();
-        private AsyncReaderWriterLock _rwNodesLock = new AsyncReaderWriterLock();
-        private AsyncReaderWriterLock _rwEdgesLock = new AsyncReaderWriterLock();
+        private readonly List<Node<T>> _nodes = new List<Node<T>>();
+        private readonly List<IEdge<T>> _edges = new List<IEdge<T>>();
+        private readonly AsyncReaderWriterLock _rwNodesLock = new AsyncReaderWriterLock();
+        private readonly AsyncReaderWriterLock _rwEdgesLock = new AsyncReaderWriterLock();
 
         #endregion
 

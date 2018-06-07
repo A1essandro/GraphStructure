@@ -25,19 +25,23 @@ namespace GraphStructure.Paths
         /// <param name="from"></param>
         /// <param name="to"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<List<int>>> GetAllBetween(int from, int to)
+        public async Task<IEnumerable<Path<T>>> GetAllBetween(int from, int to)
         {
+            var nodeList = _graph.Nodes;
             var reachibilityMatrix = await _graph.GetReachibilityMatrix();
             var adjacencyMatrix = await _graph.GetAdjacencyMatrix();
 
-            var result = new List<List<int>>();
+            var rawResult = new List<List<int>>();
             if (reachibilityMatrix[from, to] < 1)
             {
-                return result; //empty
+                return new List<Path<T>>(); //empty
             }
-            result.Add(new List<int> { from });
+            rawResult.Add(new List<int> { from });
 
-            return await _fork(to, result, reachibilityMatrix, adjacencyMatrix);
+            rawResult = await _fork(to, rawResult, reachibilityMatrix, adjacencyMatrix);
+            var paths = rawResult.AsParallel().Select(steps => new Path<T>(steps.Select(step => nodeList.ElementAt(step))));
+
+            return paths.AsEnumerable();
         }
 
         /// <summary>
@@ -46,7 +50,7 @@ namespace GraphStructure.Paths
         /// <param name="from"></param>
         /// <param name="to"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<List<int>>> GetAllBetween(Node<T> from, Node<T> to)
+        public async Task<IEnumerable<Path<T>>> GetAllBetween(Node<T> from, Node<T> to)
         {
             var departureIndex = _graph.Nodes.Select(x => x).ToList().IndexOf(from);
             var destinationIndex = _graph.Nodes.Select(x => x).ToList().IndexOf(to);
