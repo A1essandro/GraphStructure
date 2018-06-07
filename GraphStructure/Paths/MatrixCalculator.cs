@@ -34,6 +34,25 @@ namespace GraphStructure.Paths
             return matrix;
         }
 
+        public async Task<Matrix<T, bool>> GetAdjacencyMatrixNew()
+        {
+            var matrix = new Matrix<T, bool>(_graph.Order);
+
+            await Task.Run(() =>
+            {
+                foreach (var x in _graph.Nodes)
+                {
+                    foreach (var y in _graph.Nodes)
+                    {
+                        var hasPath = x.SlaveNodes.Contains(y);
+                        matrix[x, y] = hasPath;
+                    }
+                }
+            });
+
+            return matrix;
+        }
+
         public async Task<int[,]> GetReachibilityMatrix()
         {
             var adjacencyMatrix = await GetAdjacencyMatrix();
