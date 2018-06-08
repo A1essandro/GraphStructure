@@ -48,7 +48,9 @@ namespace Test
             Assert.True(matrix[node0, node0] > 0);
             Assert.True(matrix[node3, node2] > 0);
             Assert.True(matrix[node0, node2] == 0);
-            Assert.True(matrix[node1, node2] == 0);
+            Assert.True(matrix[node1, node1] == 0);
+            Assert.True(matrix[node3, node3] == 0);
+            Assert.True(matrix[3, 3] == matrix[node3, node3]);
         }
 
         [Fact]

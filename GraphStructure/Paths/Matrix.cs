@@ -59,6 +59,24 @@ namespace GraphStructure.Paths
             }
         }
 
+        public int this[int a, int b]
+        {
+            get
+            {
+                using (_rwDataLock.ReaderLock())
+                {
+                    return _rawArray[a, b];
+                }
+            }
+            internal set
+            {
+                using (_rwDataLock.WriterLock())
+                {
+                    _rawArray[a, b] = value;
+                }
+            }
+        }
+
         public static async Task<Matrix<T>> Power(Matrix<T> matrix, uint power)
         {
             using (await matrix._rwMapLock.ReaderLockAsync())
