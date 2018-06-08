@@ -39,8 +39,16 @@ namespace GraphStructure.Structure
             Task.WaitAll(tasks);
         }
 
-        public Graph(params IEdge<T>[] edges) : this(edges.AsEnumerable())
+        public Graph(params IEdge<T>[] edges)
+            : this(edges.AsEnumerable())
         {
+        }
+
+        public override int GetHashCode()
+        {
+            var nodesHash = 23 * _nodes.Sum(x => x.GetHashCode());
+            var edgesHash = 23 * _edges.Sum(x => x.GetHashCode());
+            return 17 * (nodesHash + edgesHash);
         }
 
         #endregion
