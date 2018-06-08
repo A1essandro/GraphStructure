@@ -6,7 +6,7 @@ namespace GraphStructure.Common
     internal static class MatrixExtensions
     {
 
-        public static int[,] Power(this int[,] matrix, int power)
+        public static int[,] Power(this int[,] matrix, uint power)
         {
             var len = matrix.GetLength(0);
             var result = (int[,])matrix.Clone();

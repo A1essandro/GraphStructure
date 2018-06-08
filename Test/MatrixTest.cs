@@ -35,14 +35,20 @@ namespace Test
             var calculator = new MatrixCalculator<int>(graph);
             var matrix = await calculator.GetAdjacencyMatrix();
 
-            var expectation = new int[,] {
-                { 1, 1, 0, 0 },
-                { 0, 0, 1, 0 },
-                { 0, 0, 0, 1 },
-                { 0, 0, 1, 0 },
-            };
+            var node0 = graph.Nodes.ElementAt(0);
+            var node1 = graph.Nodes.ElementAt(1);
+            var node2 = graph.Nodes.ElementAt(2);
+            var node3 = graph.Nodes.ElementAt(3);
 
-            Assert.Equal(expectation, matrix);
+            // { 1, 1, 0, 0 },
+            // { 0, 0, 1, 0 },
+            // { 0, 0, 0, 1 },
+            // { 0, 0, 1, 0 },
+
+            Assert.True(matrix[node0, node0] > 0);
+            Assert.True(matrix[node3, node2] > 0);
+            Assert.True(matrix[node0, node2] == 0);
+            Assert.True(matrix[node1, node2] == 0);
         }
 
         [Fact]
@@ -52,14 +58,21 @@ namespace Test
             var calculator = new MatrixCalculator<int>(graph);
             var matrix = await calculator.GetReachibilityMatrix();
 
-            var expectation = new int[,] {
-                { 1, 1, 1, 1 },
-                { 0, 0, 1, 1 },
-                { 0, 0, 1, 1 },
-                { 0, 0, 1, 1 },
-            };
+            var node0 = graph.Nodes.ElementAt(0);
+            var node1 = graph.Nodes.ElementAt(1);
+            var node2 = graph.Nodes.ElementAt(2);
+            var node3 = graph.Nodes.ElementAt(3);
 
-            Assert.Equal(expectation, matrix);
+            // { 1, 1, 1, 1 },
+            // { 0, 0, 1, 1 },
+            // { 0, 0, 1, 1 },
+            // { 0, 0, 1, 1 },
+
+            Assert.True(matrix[node0, node0] > 0);
+            Assert.True(matrix[node0, node2] > 0);
+            Assert.True(matrix[node0, node3] > 0);
+            Assert.True(matrix[node1, node1] == 0);
+            Assert.True(matrix[node3, node0] == 0);
         }
 
     }

@@ -14,29 +14,9 @@ namespace GraphStructure.Paths
             _graph = graph;
         }
 
-        public async Task<int[,]> GetAdjacencyMatrix()
+        public async Task<Matrix<T>> GetAdjacencyMatrix()
         {
-            var matrix = new int[_graph.Order, _graph.Order];
-            var nodes = _graph.Nodes;
-
-            await Task.Run(() =>
-            {
-                for (var x = 0; x < _graph.Order; x++)
-                {
-                    for (var y = 0; y < _graph.Order; y++)
-                    {
-                        var hasPath = nodes.ElementAt(x).SlaveNodes.Contains(nodes.ElementAt(y));
-                        matrix[x, y] = hasPath ? 1 : 0;
-                    }
-                }
-            });
-
-            return matrix;
-        }
-
-        public async Task<Matrix<T, bool>> GetAdjacencyMatrixNew()
-        {
-            var matrix = new Matrix<T, bool>(_graph.Order);
+            var matrix = new Matrix<T>(_graph.Nodes);
 
             await Task.Run(() =>
             {
@@ -44,8 +24,7 @@ namespace GraphStructure.Paths
                 {
                     foreach (var y in _graph.Nodes)
                     {
-                        var hasPath = x.SlaveNodes.Contains(y);
-                        matrix[x, y] = hasPath;
+                        matrix[x, y] = x.SlaveNodes.Contains(y) ? 1 : 0;
                     }
                 }
             });
@@ -53,18 +32,18 @@ namespace GraphStructure.Paths
             return matrix;
         }
 
-        public async Task<int[,]> GetReachibilityMatrix()
+        public async Task<Matrix<T>> GetReachibilityMatrix()
         {
-            var adjacencyMatrix = await GetAdjacencyMatrix();
-            return await Task.Run(() =>
+            return await Task.Run(async () =>
             {
-                var len = adjacencyMatrix.GetLength(0);
-                var result = (int[,])adjacencyMatrix.Clone();
-                var power = (int[,])adjacencyMatrix.Clone();
+                var result = await GetAdjacencyMatrix();
+                var toPower = await GetAdjacencyMatrix();
+                var len = toPower.Size;
 
-                for (var pow = 0; pow < len; pow++)
+                for (uint pow = 1; pow < len; pow++)
                 {
-                    result = result.Or(power.Power(pow));
+                    var power = await Matrix<T>.Power(toPower, pow);
+                    result = await Matrix<T>.Or(result, power);
                 }
 
                 return result;

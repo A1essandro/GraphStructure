@@ -27,53 +27,40 @@ namespace GraphStructure.Paths
         /// <param name="from"></param>
         /// <param name="to"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<Path<T>>> GetAllBetween(int from, int to)
+        public async Task<IEnumerable<Path<T>>> GetAllBetween(Node<T> from, Node<T> to)
         {
             var nodeList = _graph.Nodes;
             var reachibilityMatrix = await _matrixCalculator.GetReachibilityMatrix();
             var adjacencyMatrix = await _matrixCalculator.GetAdjacencyMatrix();
 
-            var rawResult = new List<List<int>>();
+            var rawResult = new List<List<Node<T>>>();
             if (reachibilityMatrix[from, to] < 1)
             {
                 return new List<Path<T>>(); //empty
             }
-            rawResult.Add(new List<int> { from });
+            rawResult.Add(new List<Node<T>> { from });
 
             rawResult = await _fork(to, rawResult, reachibilityMatrix, adjacencyMatrix);
-            var paths = rawResult.AsParallel().Select(steps => new Path<T>(steps.Select(step => nodeList.ElementAt(step))));
+            var paths = rawResult.AsParallel().Select(steps => new Path<T>(steps));
 
             return paths.AsEnumerable();
         }
 
-        /// <summary>
-        /// Search for all possible paths (without loops) between two nodes
-        /// </summary>
-        /// <param name="from"></param>
-        /// <param name="to"></param>
-        /// <returns></returns>
-        public async Task<IEnumerable<Path<T>>> GetAllBetween(Node<T> from, Node<T> to)
+        private async Task<List<List<Node<T>>>> _fork(Node<T> destination, List<List<Node<T>>> pathes,
+                                    Matrix<T> reachibilityMatrix, Matrix<T> adjacencyMatrix)
         {
-            var departureIndex = _graph.Nodes.Select(x => x).ToList().IndexOf(from);
-            var destinationIndex = _graph.Nodes.Select(x => x).ToList().IndexOf(to);
+            var forked = new List<List<Node<T>>>();
 
-            return await GetAllBetween(departureIndex, destinationIndex);
-        }
-
-        private async Task<List<List<int>>> _fork(int destination, List<List<int>> pathes,
-                                    int[,] reachibilityMatrix, int[,] adjacencyMatrix)
-        {
-            var forked = new List<List<int>>();
-
-            await Task.Run(() => pathes.AsParallel().Where(p => !p.Contains(destination)).ForAll(async path =>
+            var uncompleted = pathes.AsParallel().Where(p => !p.Contains(destination));
+            await Task.Run(() => uncompleted.ForAll(async path =>
             {
                 var rwLock = new AsyncReaderWriterLock();
                 var lastStep = path.Last();
-                var nextStepsCandidates = adjacencyMatrix.GetRow(lastStep).GetPositiveIndexes();
-                var nextSteps = nextStepsCandidates
+                var nextStepsCandidates = await adjacencyMatrix.GetRow(lastStep);
+                var nextSteps = nextStepsCandidates.AsParallel().Where(x => x.Value > 0).Select(x => x.Key)
                     .Where(candidate => reachibilityMatrix[candidate, destination] > 0 || candidate == destination);
 
-                foreach (var nextStep in nextSteps.Where(c => !path.Contains(c)))
+                foreach (var nextStep in nextSteps.Where(c => !path.Contains(c)).AsEnumerable())
                 {
                     var pathCopy = path.ToList();
                     pathCopy.Add(nextStep);
