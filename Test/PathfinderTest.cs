@@ -50,5 +50,30 @@ namespace Test
             Assert.Equal(3, pathes.Min(x => x.Length));
         }
 
+        [Fact]
+        public async Task HasPathTest()
+        {
+            var graph = new Graph<string>();
+            graph.Add(new Node<string>("one"))
+                .Add(new Node<string>("two"))
+                .Add(new Node<string>("three"))
+                .Add(new Node<string>("four"));
+
+            graph.Add(new Arc<string>(graph.Nodes.ElementAt(0), graph.Nodes.ElementAt(1)))
+                .Add(new Arc<string>(graph.Nodes.ElementAt(1), graph.Nodes.ElementAt(2)))
+                .Add(new Edge<string>(graph.Nodes.ElementAt(2), graph.Nodes.ElementAt(3)))
+                .Add(new Edge<string>(graph.Nodes.ElementAt(1), graph.Nodes.ElementAt(3)));
+
+            var pathfinder = new Pathfinder<string>(graph);
+
+            var node0 = graph.Nodes.ElementAt(0);
+            var node1 = graph.Nodes.ElementAt(1);
+            var node2 = graph.Nodes.ElementAt(2);
+            var node3 = graph.Nodes.ElementAt(3);
+
+            Assert.True(await pathfinder.HasPathBetween(node0, node3));
+            Assert.True(await pathfinder.HasPathBetween(node0, node2));
+            Assert.False(await pathfinder.HasPathBetween(node3, node0));
+        }
     }
 }

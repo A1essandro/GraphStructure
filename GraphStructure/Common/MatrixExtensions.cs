@@ -31,15 +31,17 @@ namespace GraphStructure.Common
         public static int[,] Or(this int[,] matrix1, int[,] matrix2)
         {
             var len = matrix1.GetLength(0);
+            var result = new int[len, len];
+
             for (var x = 0; x < len; x++)
             {
                 for (var y = 0; y < len; y++)
                 {
-                    matrix1[x, y] = Convert.ToInt32(matrix1[x, y] > 0 || matrix2[x, y] > 0);
+                    result[x, y] = Convert.ToInt32(matrix1[x, y] > 0 || matrix2[x, y] > 0);
                 }
             }
 
-            return matrix1;
+            return result;
         }
 
         public static int[] GetRow(this int[,] matrix, int index)

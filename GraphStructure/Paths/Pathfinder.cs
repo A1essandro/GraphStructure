@@ -46,6 +46,13 @@ namespace GraphStructure.Paths
             return paths.AsEnumerable();
         }
 
+        public async Task<bool> HasPathBetween(Node<T> from, Node<T> to)
+        {
+            var reachibilityMatrix = await _matrixCalculator.GetReachibilityMatrix();
+
+            return reachibilityMatrix[from, to] > 0;
+        }
+
         private async Task<List<List<Node<T>>>> _fork(Node<T> destination, List<List<Node<T>>> pathes,
                                     Matrix<T> reachibilityMatrix, Matrix<T> adjacencyMatrix)
         {
