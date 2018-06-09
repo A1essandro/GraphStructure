@@ -254,4 +254,10 @@ namespace GraphStructure.Structure
         #endregion
 
     }
+
+    public class Graph : Graph<object>
+    {
+        
+    }
+
 }

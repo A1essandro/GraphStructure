@@ -15,8 +15,8 @@ namespace Test
         [Fact]
         public void AccessTest()
         {
-            var graph = new Graph<object>();
-            Assert.Throws<InvalidCastException>(() => (List<Node<object>>)(graph.Nodes));
+            var graph = new Graph();
+            Assert.Throws<InvalidCastException>(() => (List<Node>)(graph.Nodes));
         }
 
         [Fact]
@@ -46,11 +46,11 @@ namespace Test
         [Fact]
         public async Task RemoveTest()
         {
-            var graph = new Graph<int>();
-            var node0 = new Node<int>();
-            var node1 = new Node<int>();
-            var node2 = new Node<int>();
-            var node3 = new Node<int>();
+            var graph = new Graph();
+            var node0 = new Node();
+            var node1 = new Node();
+            var node2 = new Node();
+            var node3 = new Node();
 
             await Task.WhenAll(
                 graph.AddAsync(node0),
@@ -59,7 +59,7 @@ namespace Test
                 graph.AddAsync(node3)
             );
 
-            graph.Remove(new Node<int>()); //no action
+            graph.Remove(new Node()); //no action
             Assert.Equal(4, graph.Nodes.Count);
 
             await graph.RemoveAsync(node0);

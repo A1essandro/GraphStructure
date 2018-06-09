@@ -68,5 +68,9 @@ namespace GraphStructure.Structure.Nodes
 
     }
 
+    public class Node : Node<object>
+    {
+
+    }
 
 }

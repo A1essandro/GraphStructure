@@ -33,4 +33,13 @@ namespace GraphStructure.Structure.Edges
         }
 
     }
+
+    public class Edge : Edge<object>
+    {
+        public Edge(Node<object> node1, Node<object> node2, int cost = 1)
+            : base(node1, node2, cost)
+        {
+        }
+    }
+
 }
