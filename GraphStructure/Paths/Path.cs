@@ -33,6 +33,11 @@ namespace GraphStructure.Paths
 
         }
 
+        internal Path(Node<T> firstStep)
+        {
+            _steps.Add(firstStep);
+        }
+
         internal Path(IEnumerable<Node<T>> steps)
         {
             _steps = steps.ToList();

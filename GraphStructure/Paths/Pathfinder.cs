@@ -34,16 +34,15 @@ namespace GraphStructure.Paths
             var adjacencyMatrix = await _matrixCalculator.GetAdjacencyMatrix();
 
             var rawResult = new List<List<Node<T>>>();
+            var result = new List<Path<T>>();
             if (reachibilityMatrix[from, to] < 1)
             {
                 return new List<Path<T>>(); //empty
             }
             rawResult.Add(new List<Node<T>> { from });
+            result.Add(new Path<T>(from));
 
-            rawResult = await _fork(to, rawResult, reachibilityMatrix, adjacencyMatrix);
-            var paths = rawResult.AsParallel().Select(steps => new Path<T>(steps));
-
-            return paths.AsEnumerable();
+            return await _fork(to, result, reachibilityMatrix, adjacencyMatrix);
         }
 
         public async Task<bool> HasPathBetween(Node<T> from, Node<T> to)
@@ -53,10 +52,10 @@ namespace GraphStructure.Paths
             return reachibilityMatrix[from, to] > 0;
         }
 
-        private async Task<List<List<Node<T>>>> _fork(Node<T> destination, List<List<Node<T>>> pathes,
+        private async Task<IList<Path<T>>> _fork(Node<T> destination, IList<Path<T>> pathes,
                                     Matrix<T> reachibilityMatrix, Matrix<T> adjacencyMatrix)
         {
-            var forked = new List<List<Node<T>>>();
+            var forked = new List<Path<T>>();
 
             var uncompleted = pathes.AsParallel().Where(p => !p.Contains(destination));
             await Task.Run(() => uncompleted.ForAll(async path =>
@@ -69,8 +68,8 @@ namespace GraphStructure.Paths
 
                 foreach (var nextStep in nextSteps.Where(c => !path.Contains(c)).AsEnumerable())
                 {
-                    var pathCopy = path.ToList();
-                    pathCopy.Add(nextStep);
+                    var pathCopy = await path.Clone();
+                    await pathCopy.Add(nextStep);
                     using (await rwLock.WriterLockAsync()) forked.Add(pathCopy);
                 }
             }));
