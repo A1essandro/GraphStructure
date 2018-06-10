@@ -17,16 +17,22 @@ namespace GraphStructure.Paths
         protected readonly TCell[,] _rawArray;
 
         public Matrix(IEnumerable<Node<T>> nodes)
+            : this(nodes, null)
         {
-            var size = nodes.Count();
-            _rawArray = new TCell[size, size];
-            _indexToNodeMap = nodes.ToList();
         }
 
         protected Matrix(IEnumerable<Node<T>> nodes, TCell[,] rawArray)
-            : this(nodes)
         {
-            _rawArray = rawArray;
+            if (rawArray == null)
+            {
+                var size = nodes.Count();
+                _rawArray = new TCell[size, size];
+            }
+            else
+            {
+                _rawArray = rawArray;
+            }
+            _indexToNodeMap = nodes.ToList();
         }
 
         public int Size
@@ -79,7 +85,6 @@ namespace GraphStructure.Paths
 
         public async Task<IDictionary<Node<T>, TCell>> GetRow(Node<T> index)
         {
-            var len = Size;
             var result = new Dictionary<Node<T>, TCell>();
 
             using (await _rwMapLock.ReaderLockAsync())

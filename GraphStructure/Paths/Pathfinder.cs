@@ -29,7 +29,6 @@ namespace GraphStructure.Paths
         /// <returns></returns>
         public async Task<IEnumerable<Path<T>>> GetAllBetween(Node<T> from, Node<T> to)
         {
-            var nodeList = _graph.Nodes;
             var reachibilityMatrix = await _matrixCalculator.GetReachibilityMatrix();
             var adjacencyMatrix = await _matrixCalculator.GetAdjacencyMatrix();
 
@@ -74,7 +73,7 @@ namespace GraphStructure.Paths
                 }
             }));
 
-            if (forked.Count() == 0)
+            if (forked.Any())
             {
                 return pathes;
             }

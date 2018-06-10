@@ -22,10 +22,10 @@ namespace GraphStructure.Structure.Nodes
         /// <returns></returns>
         public IReadOnlyCollection<Node<T>> MasterNodes => _masterNodes.AsReadOnly();
 
-        private List<Node<T>> _slaveNodes = new List<Node<T>>();
-        private List<Node<T>> _masterNodes = new List<Node<T>>();
-        private AsyncReaderWriterLock _rwSlaveLock = new AsyncReaderWriterLock();
-        private AsyncReaderWriterLock _rwMasterLock = new AsyncReaderWriterLock();
+        private readonly List<Node<T>> _slaveNodes = new List<Node<T>>();
+        private readonly List<Node<T>> _masterNodes = new List<Node<T>>();
+        private readonly AsyncReaderWriterLock _rwSlaveLock = new AsyncReaderWriterLock();
+        private readonly AsyncReaderWriterLock _rwMasterLock = new AsyncReaderWriterLock();
 
         public Node(T data)
         {
