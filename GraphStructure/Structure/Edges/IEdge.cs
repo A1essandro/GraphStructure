@@ -8,6 +8,8 @@ namespace GraphStructure.Structure.Edges
 
         int Cost { get; }
 
+        int Weight { get; }
+
         Tuple<Node<T>, Node<T>> Nodes { get; }
 
         void Connect();

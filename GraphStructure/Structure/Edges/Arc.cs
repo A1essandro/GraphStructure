@@ -9,6 +9,8 @@ namespace GraphStructure.Structure.Edges
 
         public int Cost { get; }
 
+        public int Weight => Cost;
+
         public Arc(Node<T> node1, Node<T> node2, int cost = 1)
         {
             Cost = cost;

@@ -45,6 +45,7 @@ namespace Test
             var test = pathes.Select(path => path.Select(node => node.Data).ToArray()).ToArray();
 
             Assert.Equal(2, pathes.Count());
+            Assert.True(pathes.First()[0] == node0 && pathes.First().Last() == node3);
             Assert.Contains<string[]>(new string[] { "one", "two", "four" }, test);
             Assert.Contains<List<Node<string>>>(new List<Node<string>> { node0, node1, node2, node3 }, pathes.Select(x => x.ToList()));
             Assert.Equal(3, pathes.Min(x => x.Length));

@@ -20,10 +20,10 @@ namespace Test
                 .Add(new Node<int>())
                 .Add(new Node<int>());
 
-            graph.Add(new Arc<int>(graph.Nodes.ElementAt(0), graph.Nodes.ElementAt(0))) //to himself
-                .Add(new Arc<int>(graph.Nodes.ElementAt(0), graph.Nodes.ElementAt(1)))
-                .Add(new Arc<int>(graph.Nodes.ElementAt(1), graph.Nodes.ElementAt(2)))
-                .Add(new Edge<int>(graph.Nodes.ElementAt(2), graph.Nodes.ElementAt(3)));
+            graph.Add(new Arc<int>(graph.Nodes.ElementAt(0), graph.Nodes.ElementAt(0), 0)) //to himself
+                .Add(new Arc<int>(graph.Nodes.ElementAt(0), graph.Nodes.ElementAt(1), 1))
+                .Add(new Arc<int>(graph.Nodes.ElementAt(1), graph.Nodes.ElementAt(2), 2))
+                .Add(new Edge<int>(graph.Nodes.ElementAt(2), graph.Nodes.ElementAt(3), 4));
 
             return graph;
         }
@@ -50,6 +50,7 @@ namespace Test
             Assert.True(matrix[node0, node2] == 0);
             Assert.True(matrix[node1, node1] == 0);
             Assert.True(matrix[node3, node3] == 0);
+            Assert.True(matrix[node3, node2] == 1);
             Assert.True(matrix[3, 3] == matrix[node3, node3]);
         }
 
@@ -75,6 +76,30 @@ namespace Test
             Assert.True(matrix[node0, node3] > 0);
             Assert.True(matrix[node1, node1] == 0);
             Assert.True(matrix[node3, node0] == 0);
+        }
+
+        [Fact]
+        public async Task WeightsTest()
+        {
+            var graph = _getGraph();
+            var calculator = new MatrixCalculator<int>(graph);
+            var matrix = await calculator.GetEdgeWeightsMatrix();
+
+            var node0 = graph.Nodes.ElementAt(0);
+            var node1 = graph.Nodes.ElementAt(1);
+            var node2 = graph.Nodes.ElementAt(2);
+            var node3 = graph.Nodes.ElementAt(3);
+
+            // { 0, 1, -, - },
+            // { -, -, 2, - },
+            // { -, -, -, 4 },
+            // { -, -, 4, - },
+
+            Assert.True(matrix[node0, node0] == 0);
+            Assert.True(matrix[node0, node2] == null);
+            Assert.True(matrix[node0, node1] == 1);
+            Assert.True(matrix[node1, node1] == null);
+            Assert.True(matrix[node2, node3] == matrix[node3, node2] && matrix[node2, node3] == 4);
         }
 
     }

@@ -253,11 +253,25 @@ namespace GraphStructure.Structure
 
         #endregion
 
+        public async Task<IEdge<T>> GetConnectionBetween(Node<T> from, Node<T> to)
+        {
+            using (await _rwEdgesLock.ReaderLockAsync())
+            {
+                var res = _edges.FirstOrDefault(x => x.Nodes.Item1 == from && x.Nodes.Item2 == to);
+                if (res != null)
+                {
+                    return res;
+                }
+
+                return _edges.FirstOrDefault(x => x is Edge<T> && x.Nodes.Item2 == from && x.Nodes.Item1 == to);
+            }
+        }
+
     }
 
     public class Graph : Graph<object>
     {
-        
+
     }
 
 }

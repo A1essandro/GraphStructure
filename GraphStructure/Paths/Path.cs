@@ -52,7 +52,7 @@ namespace GraphStructure.Paths
                     return _steps[index];
                 }
             }
-            set
+            set //TODO: to internal or remove
             {
                 using (_rwLock.WriterLock())
                 {
