@@ -44,26 +44,5 @@ namespace GraphStructure.Common
             return result;
         }
 
-        public static int[] GetRow(this int[,] matrix, int index)
-        {
-            var len = matrix.GetLength(1);
-            var result = new int[len];
-
-            for (var i = 0; i < len; i++)
-            {
-                result[i] = matrix[index, i];
-            }
-
-            return result;
-        }
-
-        public static IEnumerable<int> GetPositiveIndexes(this int[] arr)
-        {
-            for (var i = 0; i < arr.Length; i++)
-            {
-                if (arr[i] > 0) yield return i;
-            }
-        }
-
     }
 }

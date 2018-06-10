@@ -8,22 +8,22 @@ using Nito.AsyncEx;
 
 namespace GraphStructure.Paths
 {
-    public class Matrix<T>
-    {
 
-        private readonly IList<Node<T>> _indexToNodeMap = new List<Node<T>>();
-        private readonly AsyncReaderWriterLock _rwMapLock = new AsyncReaderWriterLock();
-        private readonly AsyncReaderWriterLock _rwDataLock = new AsyncReaderWriterLock();
-        private readonly int[,] _rawArray;
+    public class Matrix<T, TCell>
+    {
+        protected readonly IList<Node<T>> _indexToNodeMap = new List<Node<T>>();
+        protected readonly AsyncReaderWriterLock _rwMapLock = new AsyncReaderWriterLock();
+        protected readonly AsyncReaderWriterLock _rwDataLock = new AsyncReaderWriterLock();
+        protected readonly TCell[,] _rawArray;
 
         public Matrix(IEnumerable<Node<T>> nodes)
         {
             var size = nodes.Count();
-            _rawArray = new int[size, size];
+            _rawArray = new TCell[size, size];
             _indexToNodeMap = nodes.ToList();
         }
 
-        private Matrix(IEnumerable<Node<T>> nodes, int[,] rawArray)
+        protected Matrix(IEnumerable<Node<T>> nodes, TCell[,] rawArray)
             : this(nodes)
         {
             _rawArray = rawArray;
@@ -40,7 +40,7 @@ namespace GraphStructure.Paths
             }
         }
 
-        public int this[Node<T> a, Node<T> b]
+        public TCell this[Node<T> a, Node<T> b]
         {
             get
             {
@@ -59,7 +59,7 @@ namespace GraphStructure.Paths
             }
         }
 
-        public int this[int a, int b]
+        public TCell this[int a, int b]
         {
             get
             {
@@ -77,29 +77,10 @@ namespace GraphStructure.Paths
             }
         }
 
-        public static async Task<Matrix<T>> Power(Matrix<T> matrix, uint power)
-        {
-            using (await matrix._rwMapLock.ReaderLockAsync())
-            using (await matrix._rwDataLock.ReaderLockAsync())
-            {
-                return new Matrix<T>(matrix._indexToNodeMap, matrix._rawArray.Power(power));
-            }
-        }
-
-        public static async Task<Matrix<T>> Or(Matrix<T> matrix1, Matrix<T> matrix2)
-        {
-            using (await matrix1._rwMapLock.ReaderLockAsync())
-            using (await matrix1._rwDataLock.ReaderLockAsync())
-            using (await matrix2._rwDataLock.ReaderLockAsync())
-            {
-                return new Matrix<T>(matrix1._indexToNodeMap, matrix1._rawArray.Or(matrix2._rawArray));
-            }
-        }
-
-        public async Task<IDictionary<Node<T>, int>> GetRow(Node<T> index)
+        public async Task<IDictionary<Node<T>, TCell>> GetRow(Node<T> index)
         {
             var len = Size;
-            var result = new Dictionary<Node<T>, int>();
+            var result = new Dictionary<Node<T>, TCell>();
 
             using (await _rwMapLock.ReaderLockAsync())
             {
@@ -123,6 +104,40 @@ namespace GraphStructure.Paths
                         _indexToNodeMap.Add(node);
                     }
                 }
+            }
+        }
+
+    }
+
+    public class Matrix<T> : Matrix<T, int>
+    {
+
+        public Matrix(IEnumerable<Node<T>> nodes)
+            : base(nodes)
+        {
+        }
+
+        private Matrix(IEnumerable<Node<T>> nodes, int[,] rawArray)
+            : base(nodes, rawArray)
+        {
+        }
+
+        public static async Task<Matrix<T>> Power(Matrix<T> matrix, uint power)
+        {
+            using (await matrix._rwMapLock.ReaderLockAsync())
+            using (await matrix._rwDataLock.ReaderLockAsync())
+            {
+                return new Matrix<T>(matrix._indexToNodeMap, matrix._rawArray.Power(power));
+            }
+        }
+
+        public static async Task<Matrix<T>> Or(Matrix<T> matrix1, Matrix<T> matrix2)
+        {
+            using (await matrix1._rwMapLock.ReaderLockAsync())
+            using (await matrix1._rwDataLock.ReaderLockAsync())
+            using (await matrix2._rwDataLock.ReaderLockAsync())
+            {
+                return new Matrix<T>(matrix1._indexToNodeMap, matrix1._rawArray.Or(matrix2._rawArray));
             }
         }
 
