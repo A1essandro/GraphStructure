@@ -73,7 +73,7 @@ namespace GraphStructure.Paths
                 }
             }));
 
-            if (forked.Any())
+            if (!forked.Any())
             {
                 return pathes;
             }
