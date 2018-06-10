@@ -272,6 +272,16 @@ namespace GraphStructure.Structure
     public class Graph : Graph<object>
     {
 
+        public Graph(IEnumerable<IEdge<object>> edges)
+            : base(edges)
+        {
+        }
+
+        public Graph(params IEdge<object>[] edges)
+            : base(edges)
+        {
+        }
+
     }
 
 }
