@@ -44,6 +44,10 @@ namespace GraphStructure.Structure
         {
         }
 
+        #endregion
+
+        #region Object override
+
         public override int GetHashCode()
         {
             var nodesHash = 23 * _nodes.Sum(x => x.GetHashCode());
@@ -271,6 +275,10 @@ namespace GraphStructure.Structure
 
     public class Graph : Graph<object>
     {
+
+        public Graph() : base()
+        {
+        }
 
         public Graph(IEnumerable<IEdge<object>> edges)
             : base(edges)

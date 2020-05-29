@@ -1,4 +1,3 @@
-using GraphStructure.Common;
 using GraphStructure.Structure;
 using GraphStructure.Structure.Edges;
 using System;
@@ -50,21 +49,18 @@ namespace GraphStructure.Paths
                 return _reachibilityCache.Item2;
             }
 
-            return await Task.Run(async () =>
+            var result = await GetAdjacencyMatrix();
+            var toPower = await GetAdjacencyMatrix();
+            var len = toPower.Size;
+
+            for (uint pow = 1; pow < len; pow++)
             {
-                var result = await GetAdjacencyMatrix();
-                var toPower = await GetAdjacencyMatrix();
-                var len = toPower.Size;
+                var power = await Matrix<T>.Power(toPower, pow);
+                result = await Matrix<T>.Or(result, power);
+            }
 
-                for (uint pow = 1; pow < len; pow++)
-                {
-                    var power = await Matrix<T>.Power(toPower, pow);
-                    result = await Matrix<T>.Or(result, power);
-                }
-
-                _reachibilityCache = new Tuple<int, Matrix<T>>(_graph.GetHashCode(), result);
-                return result;
-            });
+            _reachibilityCache = new Tuple<int, Matrix<T>>(_graph.GetHashCode(), result);
+            return result;
         }
 
         public async Task<Matrix<T, int?>> GetEdgeWeightsMatrix()
@@ -74,23 +70,20 @@ namespace GraphStructure.Paths
                 return _edgeWeightsCache.Item2;
             }
 
-            return await Task.Run(async () =>
+            IEdge<T> connection;
+            var matrix = new Matrix<T, int?>(_graph.Nodes);
+            foreach (var x in _graph.Nodes)
             {
-                IEdge<T> connection;
-                var matrix = new Matrix<T, int?>(_graph.Nodes);
-                foreach (var x in _graph.Nodes)
+                foreach (var y in _graph.Nodes)
                 {
-                    foreach (var y in _graph.Nodes)
-                    {
-                        connection = await _graph.GetConnectionBetween(x, y);
-                        matrix[x, y] = connection?.Cost;
-                    }
+                    connection = await _graph.GetConnectionBetween(x, y);
+                    matrix[x, y] = connection?.Cost;
                 }
+            }
 
-                _edgeWeightsCache = new Tuple<int, Matrix<T, int?>>(_graph.GetHashCode(), matrix);
+            _edgeWeightsCache = new Tuple<int, Matrix<T, int?>>(_graph.GetHashCode(), matrix);
 
-                return matrix;
-            });
+            return matrix;
         }
 
     }

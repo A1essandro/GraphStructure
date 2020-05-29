@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using GraphStructure.Structure.Nodes;
 using GraphStructure.Structure;
 using Nito.AsyncEx;
-using GraphStructure.Common;
 
 namespace GraphStructure.Paths
 {
@@ -57,7 +56,7 @@ namespace GraphStructure.Paths
             var forked = new List<Path<T>>();
 
             var uncompleted = pathes.AsParallel().Where(p => !p.Contains(destination));
-            await Task.Run(() => uncompleted.ForAll(async path =>
+            uncompleted.ForAll(async path =>
             {
                 var rwLock = new AsyncReaderWriterLock();
                 var lastStep = path.Last();
@@ -71,7 +70,7 @@ namespace GraphStructure.Paths
                     await pathCopy.Add(nextStep);
                     using (await rwLock.WriterLockAsync()) forked.Add(pathCopy);
                 }
-            }));
+            });
 
             if (!forked.Any())
             {
