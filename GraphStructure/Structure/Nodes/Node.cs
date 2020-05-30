@@ -1,31 +1,15 @@
-using System.Collections.Generic;
-using GraphStructure.Common;
-using Nito.AsyncEx;
+using System.Diagnostics;
 
 namespace GraphStructure.Structure.Nodes
 {
 
+    [DebuggerDisplay("Data: {Data}; Hashcode: {HashCode}")]
     public class Node<T>
     {
 
         public T Data { get; set; }
 
-        /// <summary>
-        /// Collection of nodes where you can go directly from the current node
-        /// </summary>
-        /// <returns></returns>
-        public IReadOnlyCollection<Node<T>> SlaveNodes => _slaveNodes.AsReadOnly();
-
-        /// <summary>
-        /// Сollection of nodes from which you can go directly to the current node
-        /// </summary>
-        /// <returns></returns>
-        public IReadOnlyCollection<Node<T>> MasterNodes => _masterNodes.AsReadOnly();
-
-        private readonly List<Node<T>> _slaveNodes = new List<Node<T>>();
-        private readonly List<Node<T>> _masterNodes = new List<Node<T>>();
-        private readonly AsyncReaderWriterLock _rwSlaveLock = new AsyncReaderWriterLock();
-        private readonly AsyncReaderWriterLock _rwMasterLock = new AsyncReaderWriterLock();
+        private int HashCode => GetHashCode();
 
         public Node(T data)
         {
@@ -34,36 +18,6 @@ namespace GraphStructure.Structure.Nodes
 
         public Node() : this(default(T))
         {
-        }
-
-        internal Node<T> AddSlave(Node<T> node)
-        {
-            _slaveNodes.ThrowIfContainsWithLock(node, _rwSlaveLock);
-            _slaveNodes.AddWithLock(node, _rwSlaveLock);
-
-            return this;
-        }
-
-        internal Node<T> RemoveSlave(Node<T> node)
-        {
-            _slaveNodes.RemoveWithLock(node, _rwSlaveLock);
-
-            return this;
-        }
-
-        internal Node<T> AddMaster(Node<T> node)
-        {
-            _masterNodes.ThrowIfContainsWithLock(node, _rwMasterLock);
-            _masterNodes.AddWithLock(node, _rwMasterLock);
-
-            return this;
-        }
-
-        internal Node<T> RemoveMaster(Node<T> node)
-        {
-            _masterNodes.RemoveWithLock(node, _rwMasterLock);
-
-            return this;
         }
 
     }

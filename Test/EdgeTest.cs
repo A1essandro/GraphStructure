@@ -13,8 +13,8 @@ namespace Test
             var edge = new Edge(new Node(), new Node(), 3);
 
             Assert.Equal(1, arc.Weight);
-            Assert.Equal(3, edge.Cost);
-            Assert.True(edge.Cost == edge.Weight);
+            Assert.Equal(3, edge.Weight);
+            Assert.True(edge.Weight == edge.Weight);
         }
     }
 }

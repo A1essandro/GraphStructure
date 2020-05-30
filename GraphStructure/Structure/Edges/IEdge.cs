@@ -6,15 +6,13 @@ namespace GraphStructure.Structure.Edges
     public interface IEdge<T>
     {
 
-        int Cost { get; }
+        int Weight { get; set; }
 
-        int Weight { get; }
+        bool HasDirection { get; }
 
         Tuple<Node<T>, Node<T>> Nodes { get; }
 
-        void Connect();
-
-        void Disconnect();
+        bool IsHasSameDirectionWith(IEdge<T> edge);
 
     }
 }

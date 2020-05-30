@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using GraphStructure;
 using GraphStructure.Structure;
 using GraphStructure.Structure.Edges;
 using GraphStructure.Structure.Nodes;
@@ -26,7 +25,7 @@ namespace Test
         }
 
         [Fact]
-        public void AdditionTest()
+        public async Task AdditionTest()
         {
             var node0 = new Node();
             var node1 = new Node();
@@ -38,7 +37,7 @@ namespace Test
             Assert.Equal(2, graph.Edges.Count);
             graph.Add(new Arc(node1, node0));
             Assert.Equal(3, graph.Edges.Count);
-            Assert.ThrowsAsync<ArgumentException>(async () => await graph.AddAsync(new Edge(node0, node1)));
+            await Assert.ThrowsAsync<ArgumentException>(() => graph.AddAsync(new Edge(node0, node1)));
             Assert.Throws<ArgumentException>(() => graph.Add(new Edge(node1, node0)));
         }
 

@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Threading.Tasks;
-using GraphStructure;
 using GraphStructure.Paths;
 using GraphStructure.Structure;
 using GraphStructure.Structure.Edges;
@@ -15,10 +14,10 @@ namespace Test
         private Graph<int> _getGraph()
         {
             var graph = new Graph<int>();
-            graph.Add(new Node<int>())
-                .Add(new Node<int>())
-                .Add(new Node<int>())
-                .Add(new Node<int>());
+            graph.Add(new Node<int>(0))
+                .Add(new Node<int>(1))
+                .Add(new Node<int>(2))
+                .Add(new Node<int>(3));
 
             graph.Add(new Arc<int>(graph.Nodes.ElementAt(0), graph.Nodes.ElementAt(0), 0)) //to himself
                 .Add(new Arc<int>(graph.Nodes.ElementAt(0), graph.Nodes.ElementAt(1), 1))

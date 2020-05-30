@@ -25,21 +25,19 @@ namespace GraphStructure.Paths
                 return _adjacencyCache.Item2;
             }
 
-            return await Task.Run(() =>
+            var matrix = new Matrix<T>(_graph.Nodes);
+            foreach (var node in _graph.Nodes)
             {
-                var matrix = new Matrix<T>(_graph.Nodes);
-                foreach (var x in _graph.Nodes)
+                var slaveNodes = await _graph.GetSlaveNodesFor(node);
+                foreach (var slave in slaveNodes)
                 {
-                    foreach (var y in _graph.Nodes)
-                    {
-                        matrix[x, y] = x.SlaveNodes.Contains(y) ? 1 : 0;
-                    }
+                    matrix[node, slave] = 1;
                 }
+            }
 
-                _adjacencyCache = new Tuple<int, Matrix<T>>(_graph.GetHashCode(), matrix);
+            _adjacencyCache = new Tuple<int, Matrix<T>>(_graph.GetHashCode(), matrix);
 
-                return matrix;
-            });
+            return matrix;
         }
 
         public async Task<Matrix<T>> GetReachibilityMatrix()
@@ -77,7 +75,7 @@ namespace GraphStructure.Paths
                 foreach (var y in _graph.Nodes)
                 {
                     connection = await _graph.GetConnectionBetween(x, y);
-                    matrix[x, y] = connection?.Cost;
+                    matrix[x, y] = connection?.Weight;
                 }
             }
 
