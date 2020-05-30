@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using GraphStructure.Common;
+using GraphStructure.Configuration;
 using GraphStructure.Structure.Edges;
 using GraphStructure.Structure.Nodes;
 using Nito.AsyncEx;
@@ -14,6 +15,7 @@ namespace GraphStructure.Structure
 
         public IReadOnlyCollection<Node<T>> Nodes => _nodes.AsReadOnly();
         public IReadOnlyCollection<IEdge<T>> Edges => _edges.AsReadOnly();
+        private GraphConfiguration Configuration { get; }
         public int Size => _edges.Count;
         public int Order => _nodes.Count;
 
@@ -28,12 +30,13 @@ namespace GraphStructure.Structure
 
         #region ctors
 
-        public Graph()
+        public Graph(GraphConfiguration config = default)
         {
-
+            Configuration = config ?? GraphConfiguration.Default;
         }
 
         public Graph(IEnumerable<IEdge<T>> edges)
+            : this(GraphConfiguration.Default)
         {
             var tasks = edges.Select(edge => AddAsync(edge)).ToArray();
             Task.WaitAll(tasks);
@@ -163,7 +166,8 @@ namespace GraphStructure.Structure
         {
             using (_rwEdgesLock.ReaderLock())
             {
-                if (_edges.Any(x => x.IsHasSameDirectionWith(edge))) throw new ArgumentException();
+                if (!_isAvailableToAdd(edge))
+                    return this;
             }
 
             _edges.AddWithLock(edge, _rwEdgesLock);
@@ -189,7 +193,8 @@ namespace GraphStructure.Structure
         {
             using (await _rwEdgesLock.ReaderLockAsync())
             {
-                if (_edges.Any(x => x.IsHasSameDirectionWith(edge))) throw new ArgumentException();
+                if (!_isAvailableToAdd(edge))
+                    return this;
             }
 
             _edges.AddWithLock(edge, _rwEdgesLock);
@@ -285,12 +290,29 @@ namespace GraphStructure.Structure
             }
         }
 
+        private bool _isAvailableToAdd(IEdge<T> edge)
+        {
+            if (!_edges.Any(x => x.IsHasSameDirectionWith(edge))
+                || Configuration.ExistingEdgeAddingPolicy == ExistingEdgeAddingPolicy.Add) return true;
+
+            switch (Configuration.ExistingEdgeAddingPolicy)
+            {
+                case ExistingEdgeAddingPolicy.Exception:
+                    throw new ArgumentException();
+                case ExistingEdgeAddingPolicy.Ignore:
+                    return false;
+            }
+
+            return true;
+        }
+
     }
 
     public class Graph : Graph<object>
     {
 
-        public Graph() : base()
+        public Graph(GraphConfiguration config = default)
+            : base(config)
         {
         }
 
