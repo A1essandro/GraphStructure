@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using GraphStructure.Common;
 using GraphStructure.Configuration;
+using GraphStructure.Internal;
 using GraphStructure.Structure.Edges;
 using GraphStructure.Structure.Nodes;
 using Nito.AsyncEx;
@@ -13,18 +14,16 @@ namespace GraphStructure.Structure
     public class Graph<T>
     {
 
-        public IReadOnlyCollection<Node<T>> Nodes => _nodes.AsReadOnly();
-        public IReadOnlyCollection<IEdge<T>> Edges => _edges.AsReadOnly();
+        public IReadOnlyCollection<Node<T>> Nodes => _nodeContainer.Collection;
+        public IReadOnlyCollection<IEdge<T>> Edges => _edgeContainer.Collection;
         private GraphConfiguration Configuration { get; }
-        public int Size => _edges.Count;
-        public int Order => _nodes.Count;
+        public int Size => _edgeContainer.Count;
+        public int Order => _nodeContainer.Count;
 
         #region Private fields
 
-        private readonly List<Node<T>> _nodes = new List<Node<T>>();
-        private readonly List<IEdge<T>> _edges = new List<IEdge<T>>();
-        private readonly AsyncReaderWriterLock _rwNodesLock = new AsyncReaderWriterLock();
-        private readonly AsyncReaderWriterLock _rwEdgesLock = new AsyncReaderWriterLock();
+        private readonly NodeContainer<T> _nodeContainer;
+        private readonly EdgeContainer<T> _edgeContainer;
 
         #endregion
 
@@ -33,6 +32,8 @@ namespace GraphStructure.Structure
         public Graph(GraphConfiguration config = default)
         {
             Configuration = config ?? GraphConfiguration.Default;
+            _nodeContainer = new NodeContainer<T>();
+            _edgeContainer = new EdgeContainer<T>(Configuration);
         }
 
         public Graph(IEnumerable<IEdge<T>> edges)
@@ -55,8 +56,8 @@ namespace GraphStructure.Structure
         {
             unchecked
             {
-                var nodesHash = 23 * _nodes.Sum(x => x.GetHashCode());
-                var edgesHash = 23 * _edges.Sum(x => x.GetHashCode());
+                var nodesHash = 23 * _nodeContainer.Collection.Sum(x => x.GetHashCode());
+                var edgesHash = 23 * _edgeContainer.Collection.Sum(x => x.GetHashCode());
                 return 17 * (nodesHash + edgesHash);
             }
         }
@@ -82,8 +83,8 @@ namespace GraphStructure.Structure
         /// <returns></returns>
         public Graph<T> Add(Node<T> node)
         {
-            _nodes.ThrowIfContainsWithLock(node, _rwNodesLock);
-            _nodes.AddWithLock(node, _rwNodesLock);
+            if (_nodeContainer.Contains(node)) throw new ArgumentException();
+            _nodeContainer.Add(node);
 
             return this;
         }
@@ -95,8 +96,8 @@ namespace GraphStructure.Structure
         /// <returns></returns>
         public async Task<Graph<T>> AddAsync(Node<T> node)
         {
-            await _nodes.ThrowIfContainsWithLockAsync(node, _rwNodesLock);
-            await _nodes.AddWithLockAsync(node, _rwNodesLock);
+            if (await _nodeContainer.ContainsAsync(node)) throw new ArgumentException();
+            await _nodeContainer.AddAsync(node);
 
             return this;
         }
@@ -112,7 +113,7 @@ namespace GraphStructure.Structure
         /// <returns></returns>
         public Graph<T> RemoveNode(int index)
         {
-            _nodes.RemoveWithLock(_nodes[index], _rwNodesLock);
+            _nodeContainer.RemoveByIndex(index);
 
             return this;
         }
@@ -124,7 +125,7 @@ namespace GraphStructure.Structure
         /// <returns></returns>
         public async Task<Graph<T>> RemoveNodeAsync(int index)
         {
-            await _nodes.RemoveWithLockAsync(_nodes[index], _rwNodesLock);
+            await _nodeContainer.RemoveByIndexAsync(index);
 
             return this;
         }
@@ -136,7 +137,7 @@ namespace GraphStructure.Structure
         /// <returns></returns>
         public Graph<T> Remove(Node<T> node)
         {
-            _nodes.RemoveWithLock(node, _rwNodesLock);
+            _nodeContainer.Remove(node);
 
             return this;
         }
@@ -148,7 +149,7 @@ namespace GraphStructure.Structure
         /// <returns></returns>
         public async Task<Graph<T>> RemoveAsync(Node<T> node)
         {
-            await _nodes.RemoveWithLockAsync(node, _rwNodesLock);
+            await _nodeContainer.RemoveAsync(node);
 
             return this;
         }
@@ -164,21 +165,15 @@ namespace GraphStructure.Structure
         /// <returns></returns>
         public Graph<T> Add(IEdge<T> edge)
         {
-            using (_rwEdgesLock.ReaderLock())
-            {
-                if (!_isAvailableToAdd(edge))
-                    return this;
-            }
+            _edgeContainer.Add(edge);
 
-            _edges.AddWithLock(edge, _rwEdgesLock);
-
-            if (!_nodes.ContainsWithLock(edge.Nodes.Item1, _rwNodesLock))
+            if (!_nodeContainer.Contains(edge.Nodes.Item1))
             {
-                _nodes.AddWithLock(edge.Nodes.Item1, _rwNodesLock);
+                _nodeContainer.Add(edge.Nodes.Item1);
             }
-            if (!_nodes.ContainsWithLock(edge.Nodes.Item2, _rwNodesLock))
+            if (!_nodeContainer.Contains(edge.Nodes.Item2))
             {
-                _nodes.AddWithLock(edge.Nodes.Item2, _rwNodesLock);
+                _nodeContainer.Add(edge.Nodes.Item2);
             }
 
             return this;
@@ -191,21 +186,15 @@ namespace GraphStructure.Structure
         /// <returns></returns>
         public async Task<Graph<T>> AddAsync(IEdge<T> edge)
         {
-            using (await _rwEdgesLock.ReaderLockAsync())
-            {
-                if (!_isAvailableToAdd(edge))
-                    return this;
-            }
+            await _edgeContainer.AddAsync(edge);
 
-            _edges.AddWithLock(edge, _rwEdgesLock);
-
-            if (!await _nodes.ContainsWithLockAsync(edge.Nodes.Item1, _rwNodesLock))
+            if (!await _nodeContainer.ContainsAsync(edge.Nodes.Item1))
             {
-                await _nodes.AddWithLockAsync(edge.Nodes.Item1, _rwNodesLock);
+                await _nodeContainer.AddAsync(edge.Nodes.Item1);
             }
-            if (!await _nodes.ContainsWithLockAsync(edge.Nodes.Item2, _rwNodesLock))
+            if (!await _nodeContainer.ContainsAsync(edge.Nodes.Item2))
             {
-                await _nodes.AddWithLockAsync(edge.Nodes.Item2, _rwNodesLock);
+                await _nodeContainer.AddAsync(edge.Nodes.Item2);
             }
 
             return this;
@@ -222,7 +211,7 @@ namespace GraphStructure.Structure
         /// <returns></returns>
         public Graph<T> RemoveEdge(int index)
         {
-            _edges.RemoveWithLock(_edges[index], _rwEdgesLock);
+            _edgeContainer.RemoveByIndex(index);
 
             return this;
         }
@@ -234,7 +223,7 @@ namespace GraphStructure.Structure
         /// <returns></returns>
         public async Task<Graph<T>> RemoveEdgeAsync(int index)
         {
-            await _edges.RemoveWithLockAsync(_edges[index], _rwEdgesLock);
+            await _edgeContainer.RemoveByIndexAsync(index);
 
             return this;
         }
@@ -246,7 +235,7 @@ namespace GraphStructure.Structure
         /// <returns></returns>
         public Graph<T> Remove(IEdge<T> edge)
         {
-            _edges.RemoveWithLock(edge, _rwEdgesLock);
+            _edgeContainer.Remove(edge);
 
             return this;
         }
@@ -258,7 +247,7 @@ namespace GraphStructure.Structure
         /// <returns></returns>
         public async Task<Graph<T>> RemoveAsync(IEdge<T> edge)
         {
-            await _edges.RemoveWithLockAsync(edge, _rwEdgesLock);
+            await _edgeContainer.RemoveAsync(edge);
 
             return this;
         }
@@ -267,43 +256,28 @@ namespace GraphStructure.Structure
 
         public async Task<IReadOnlyCollection<Node<T>>> GetSlaveNodesFor(Node<T> node)
         {
-            using (await _rwEdgesLock.ReaderLockAsync())
-            {
-                var fromFirstNodeOfEdge = _edges.Where(x => x.Nodes.Item1 == node).Select(x => x.Nodes.Item2);
-                var fromSecondNodeOfArc = _edges.Where(x => !x.HasDirection && x.Nodes.Item2 == node).Select(x => x.Nodes.Item1);
+            var edges = await _edgeContainer.GetCollectionAsync();
+            var fromFirstNodeOfEdge = edges.Where(x => x.Nodes.Item1 == node).Select(x => x.Nodes.Item2);
+            var fromSecondNodeOfArc = edges.Where(x => !x.HasDirection && x.Nodes.Item2 == node).Select(x => x.Nodes.Item1);
 
-                return fromFirstNodeOfEdge.Union(fromSecondNodeOfArc).ToArray();
-            }
+            return fromFirstNodeOfEdge.Union(fromSecondNodeOfArc).ToArray();
         }
 
         public async Task<IEdge<T>> GetConnectionBetween(Node<T> from, Node<T> to)
         {
-            using (await _rwEdgesLock.ReaderLockAsync())
+            var edges = await _edgeContainer.GetCollectionAsync();
+            var res = edges
+                .OrderBy(x => x.Weight)
+                .FirstOrDefault(x => x.Nodes.Item1 == from && x.Nodes.Item2 == to);
+
+            if (res != null)
             {
-                var res = _edges.FirstOrDefault(x => x.Nodes.Item1 == from && x.Nodes.Item2 == to);
-                if (res != null)
-                {
-                    return res;
-                }
-
-                return _edges.FirstOrDefault(x => x is Edge<T> && x.Nodes.Item2 == from && x.Nodes.Item1 == to);
-            }
-        }
-
-        private bool _isAvailableToAdd(IEdge<T> edge)
-        {
-            if (!_edges.Any(x => x.IsHasSameDirectionWith(edge))
-                || Configuration.ExistingEdgeAddingPolicy == ExistingEdgeAddingPolicy.Add) return true;
-
-            switch (Configuration.ExistingEdgeAddingPolicy)
-            {
-                case ExistingEdgeAddingPolicy.Exception:
-                    throw new ArgumentException();
-                case ExistingEdgeAddingPolicy.Ignore:
-                    return false;
+                return res;
             }
 
-            return true;
+            return edges
+                .OrderBy(x => x.Weight)
+                .FirstOrDefault(x => !x.HasDirection && x.Nodes.Item2 == from && x.Nodes.Item1 == to);
         }
 
     }
