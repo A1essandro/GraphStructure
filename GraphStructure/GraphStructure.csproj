@@ -12,7 +12,15 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/A1essandro/GraphStructure.git</RepositoryUrl>
     <RootNamespace>GraphStructure</RootNamespace>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Condition="'$(TargetFramework)'!='net45'" Include="Nito.AsyncEx" Version="5.0.0"/>
     <PackageReference Condition="'$(TargetFramework)'=='net45'" Include="Nito.AsyncEx" Version="4.*"/>
