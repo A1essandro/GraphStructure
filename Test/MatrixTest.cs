@@ -1,10 +1,7 @@
-using System.Linq;
-using System.Threading.Tasks;
-using GraphStructure;
+﻿using GraphStructure;
 using GraphStructure.Paths;
-using GraphStructure.Structure;
-using GraphStructure.Structure.Edges;
-using GraphStructure.Structure.Nodes;
+using Moq;
+using System.Linq;
 using Xunit;
 
 namespace Test
@@ -12,94 +9,22 @@ namespace Test
     public class MatrixTest
     {
 
-        private Graph<int> _getGraph()
-        {
-            var graph = new Graph<int>();
-            graph.Add(new Node<int>())
-                .Add(new Node<int>())
-                .Add(new Node<int>())
-                .Add(new Node<int>());
-
-            graph.Add(new Arc<int>(graph.Nodes.ElementAt(0), graph.Nodes.ElementAt(0), 0)) //to himself
-                .Add(new Arc<int>(graph.Nodes.ElementAt(0), graph.Nodes.ElementAt(1), 1))
-                .Add(new Arc<int>(graph.Nodes.ElementAt(1), graph.Nodes.ElementAt(2), 2))
-                .Add(new Edge<int>(graph.Nodes.ElementAt(2), graph.Nodes.ElementAt(3), 4));
-
-            return graph;
-        }
-
         [Fact]
-        public async Task AdjacencyTest()
+        public void IndexerTest()
         {
-            var graph = _getGraph();
-            var calculator = new MatrixCalculator<int>(graph);
-            var matrix = await calculator.GetAdjacencyMatrix();
+            var v1 = new Mock<IVertex>().Object;
+            var v2 = new Mock<IVertex>().Object;
+            var v3 = new Mock<IVertex>().Object;
+            var matrix = new Matrix<int>(v1, v2, v3);
 
-            var node0 = graph.Nodes.ElementAt(0);
-            var node1 = graph.Nodes.ElementAt(1);
-            var node2 = graph.Nodes.ElementAt(2);
-            var node3 = graph.Nodes.ElementAt(3);
+            matrix[v1, v1] = -1; matrix[v1, v2] = 2;
+            matrix[(v2, v1)] = -3; matrix[(v2, v2)] = 4;
 
-            // { 1, 1, 0, 0 },
-            // { 0, 0, 1, 0 },
-            // { 0, 0, 0, 1 },
-            // { 0, 0, 1, 0 },
-
-            Assert.True(matrix[node0, node0] > 0);
-            Assert.True(matrix[node3, node2] > 0);
-            Assert.True(matrix[node0, node2] == 0);
-            Assert.True(matrix[node1, node1] == 0);
-            Assert.True(matrix[node3, node3] == 0);
-            Assert.True(matrix[node3, node2] == 1);
-            Assert.True(matrix[3, 3] == matrix[node3, node3]);
-        }
-
-        [Fact]
-        public async Task ReachibilityTest()
-        {
-            var graph = _getGraph();
-            var calculator = new MatrixCalculator<int>(graph);
-            var matrix = await calculator.GetReachibilityMatrix();
-
-            var node0 = graph.Nodes.ElementAt(0);
-            var node1 = graph.Nodes.ElementAt(1);
-            var node2 = graph.Nodes.ElementAt(2);
-            var node3 = graph.Nodes.ElementAt(3);
-
-            // { 1, 1, 1, 1 },
-            // { 0, 0, 1, 1 },
-            // { 0, 0, 1, 1 },
-            // { 0, 0, 1, 1 },
-
-            Assert.True(matrix[node0, node0] > 0);
-            Assert.True(matrix[node0, node2] > 0);
-            Assert.True(matrix[node0, node3] > 0);
-            Assert.True(matrix[node1, node1] == 0);
-            Assert.True(matrix[node3, node0] == 0);
-        }
-
-        [Fact]
-        public async Task WeightsTest()
-        {
-            var graph = _getGraph();
-            var calculator = new MatrixCalculator<int>(graph);
-            var matrix = await calculator.GetEdgeWeightsMatrix();
-
-            var node0 = graph.Nodes.ElementAt(0);
-            var node1 = graph.Nodes.ElementAt(1);
-            var node2 = graph.Nodes.ElementAt(2);
-            var node3 = graph.Nodes.ElementAt(3);
-
-            // { 0, 1, -, - },
-            // { -, -, 2, - },
-            // { -, -, -, 4 },
-            // { -, -, 4, - },
-
-            Assert.True(matrix[node0, node0] == 0);
-            Assert.True(matrix[node0, node2] == null);
-            Assert.True(matrix[node0, node1] == 1);
-            Assert.True(matrix[node1, node1] == null);
-            Assert.True(matrix[node2, node3] == matrix[node3, node2] && matrix[node2, node3] == 4);
+            Assert.Equal(2, matrix.Sum(x => x.Value));
+            Assert.Equal(-1, matrix[(v1, v1)]);
+            Assert.Equal(2, matrix[(v1, v2)]);
+            Assert.Equal(-3, matrix[v2, v1]);
+            Assert.Equal(4, matrix[v2, v2]);
         }
 
     }

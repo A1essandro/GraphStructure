@@ -1,149 +1,86 @@
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using GraphStructure.Common;
-using GraphStructure.Structure.Nodes;
-using Nito.AsyncEx;
 
 namespace GraphStructure.Paths
 {
 
-    public class Matrix<T, TCell>
+    public class Matrix<T> : IMatrix<T>
     {
-        protected readonly IList<Node<T>> _indexToNodeMap = new List<Node<T>>();
-        protected readonly AsyncReaderWriterLock _rwMapLock = new AsyncReaderWriterLock();
-        protected readonly AsyncReaderWriterLock _rwDataLock = new AsyncReaderWriterLock();
-        protected readonly TCell[,] _rawArray;
 
-        public Matrix(IEnumerable<Node<T>> nodes)
-            : this(nodes, null)
-        {
-        }
+        private readonly ConcurrentDictionary<IVertex, ConcurrentDictionary<IVertex, T>> _hidenStructure = new ConcurrentDictionary<IVertex, ConcurrentDictionary<IVertex, T>>();
 
-        protected Matrix(IEnumerable<Node<T>> nodes, TCell[,] rawArray)
-        {
-            if (rawArray == null)
-            {
-                var size = nodes.Count();
-                _rawArray = new TCell[size, size];
-            }
-            else
-            {
-                _rawArray = rawArray;
-            }
-            _indexToNodeMap = nodes.ToList();
-        }
+        public int Size => _hidenStructure.Count;
 
-        public int Size
+        public ICollection<IVertex> Vertices { get; }
+
+        public T this[IVertex a, IVertex b]
         {
             get
             {
-                using (_rwMapLock.ReaderLock())
-                {
-                    return _indexToNodeMap.Count();
-                }
-            }
-        }
-
-        public TCell this[Node<T> a, Node<T> b]
-        {
-            get
-            {
-                using (_rwDataLock.ReaderLock())
-                {
-                    return _rawArray[_indexToNodeMap.IndexOf(a), _indexToNodeMap.IndexOf(b)];
-                }
+                return _hidenStructure[a][b];
             }
             set
             {
-                _checkMap(a, b);
-                using (_rwDataLock.WriterLock())
-                {
-                    _rawArray[_indexToNodeMap.IndexOf(a), _indexToNodeMap.IndexOf(b)] = value;
-                }
+                _hidenStructure[a][b] = value;
             }
         }
 
-        public TCell this[int a, int b]
+        public T this[(IVertex, IVertex) vector]
         {
             get
             {
-                using (_rwDataLock.ReaderLock())
+                return _hidenStructure[vector.Item1][vector.Item2];
+            }
+            set
+            {
+                _hidenStructure[vector.Item1][vector.Item2] = value;
+            }
+        }
+
+        public Matrix(params IVertex[] vertices) : this(vertices as IEnumerable<IVertex>)
+        {
+
+        }
+
+        public Matrix(IEnumerable<IVertex> vertices)
+        {
+            Vertices = vertices.ToArray();
+            var matrix = new ConcurrentDictionary<IVertex, ConcurrentDictionary<IVertex, T>>();
+            foreach (var x in vertices)
+            {
+                matrix[x] = new ConcurrentDictionary<IVertex, T>();
+                foreach (var y in vertices)
                 {
-                    return _rawArray[a, b];
+                    matrix[x][y] = default;
                 }
             }
-            internal set
+
+            _hidenStructure = matrix;
+        }
+
+        public IEnumerator<KeyValuePair<(IVertex, IVertex), T>> GetEnumerator()
+        {
+            foreach (var pair in _hidenStructure)
             {
-                using (_rwDataLock.WriterLock())
+                foreach (var v in pair.Value)
                 {
-                    _rawArray[a, b] = value;
+                    yield return new KeyValuePair<(IVertex, IVertex), T>((pair.Key, v.Key), v.Value);
                 }
             }
         }
 
-        public async Task<IDictionary<Node<T>, TCell>> GetRow(Node<T> index)
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            var result = new Dictionary<Node<T>, TCell>();
-
-            using (await _rwMapLock.ReaderLockAsync())
-            {
-                foreach (var node in _indexToNodeMap)
-                {
-                    result[node] = this[index, node];
-                }
-            }
-
-            return result;
+            return GetEnumerator();
         }
 
-        private void _checkMap(params Node<T>[] nodes)
+        public IDictionary<IVertex, T> GetRow(IVertex index)
         {
-            using (_rwMapLock.ReaderLock())
-            {
-                foreach (var node in nodes)
-                {
-                    if (!_indexToNodeMap.Contains(node))
-                    {
-                        _indexToNodeMap.Add(node);
-                    }
-                }
-            }
+            return this.Where(x => x.Key.Item1.Equals(index)).ToDictionary(x => x.Key.Item2, x => x.Value);
         }
 
     }
 
-    public class Matrix<T> : Matrix<T, int>
-    {
-
-        public Matrix(IEnumerable<Node<T>> nodes)
-            : base(nodes)
-        {
-        }
-
-        private Matrix(IEnumerable<Node<T>> nodes, int[,] rawArray)
-            : base(nodes, rawArray)
-        {
-        }
-
-        public static async Task<Matrix<T>> Power(Matrix<T> matrix, uint power)
-        {
-            using (await matrix._rwMapLock.ReaderLockAsync())
-            using (await matrix._rwDataLock.ReaderLockAsync())
-            {
-                return new Matrix<T>(matrix._indexToNodeMap, matrix._rawArray.Power(power));
-            }
-        }
-
-        public static async Task<Matrix<T>> Or(Matrix<T> matrix1, Matrix<T> matrix2)
-        {
-            using (await matrix1._rwMapLock.ReaderLockAsync())
-            using (await matrix1._rwDataLock.ReaderLockAsync())
-            using (await matrix2._rwDataLock.ReaderLockAsync())
-            {
-                return new Matrix<T>(matrix1._indexToNodeMap, matrix1._rawArray.Or(matrix2._rawArray));
-            }
-        }
-
-    }
 }

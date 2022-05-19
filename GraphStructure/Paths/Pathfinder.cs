@@ -1,87 +1,90 @@
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using GraphStructure.Structure.Nodes;
-using GraphStructure.Structure;
-using Nito.AsyncEx;
 
 namespace GraphStructure.Paths
 {
 
-    public class Pathfinder<T>
+    public class Pathfinder
     {
 
-        private readonly Graph<T> _graph;
-        private readonly MatrixCalculator<T> _matrixCalculator;
+        private readonly Graph _graph;
 
-        public Pathfinder(Graph<T> graph)
+        public Pathfinder(Graph graph)
         {
             _graph = graph;
-            _matrixCalculator = new MatrixCalculator<T>(_graph);
         }
 
         /// <summary>
-        /// Search for all possible paths (without loops) between two nodes
+        /// Search for all possible paths (without loops) between two IVertexs
         /// </summary>
         /// <param name="from"></param>
         /// <param name="to"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<Path<T>>> GetAllBetween(Node<T> from, Node<T> to)
+        public IEnumerable<Path> GetAllBetween(IVertex from, IVertex to)
         {
-            var reachibilityMatrix = await _matrixCalculator.GetReachibilityMatrix();
-            var adjacencyMatrix = await _matrixCalculator.GetAdjacencyMatrix();
+            var reachibilityMatrix = new ReachibilityMatrix(_graph.Vertices);
+            var adjacencyMatrix = new AdjacencyMatrix(_graph.Vertices);
 
-            var rawResult = new List<List<Node<T>>>();
-            var result = new List<Path<T>>();
-            if (reachibilityMatrix[from, to] < 1)
+            if (!reachibilityMatrix[from, to])
             {
-                return new List<Path<T>>(); //empty
+                return Array.Empty<Path>(); //empty
             }
-            rawResult.Add(new List<Node<T>> { from });
-            result.Add(new Path<T>(from));
 
-            return await _fork(to, result, reachibilityMatrix, adjacencyMatrix);
+            var forked = new ConcurrentBag<Path>(InitialFork(to, reachibilityMatrix, adjacencyMatrix, from));
+            return Fork(to, forked, reachibilityMatrix, adjacencyMatrix);
         }
 
-        public async Task<bool> HasPathBetween(Node<T> from, Node<T> to)
+        private IEnumerable<Path> Fork(IVertex destination, IEnumerable<Path> pathes, Matrix<bool> reachibilityMatrix, Matrix<bool> adjacencyMatrix)
         {
-            var reachibilityMatrix = await _matrixCalculator.GetReachibilityMatrix();
+            var forked = pathes.SelectMany(path => Forking(destination, reachibilityMatrix, adjacencyMatrix, path)).ToArray();
 
-            return reachibilityMatrix[from, to] > 0;
-        }
-
-        private async Task<IList<Path<T>>> _fork(Node<T> destination, IList<Path<T>> pathes,
-                                    Matrix<T> reachibilityMatrix, Matrix<T> adjacencyMatrix)
-        {
-            var forked = new List<Path<T>>();
-
-            var uncompleted = pathes.AsParallel().Where(p => !p.Contains(destination));
-            uncompleted.ForAll(async path =>
-            {
-                var rwLock = new AsyncReaderWriterLock();
-                var lastStep = path.Last();
-                var nextStepsCandidates = await adjacencyMatrix.GetRow(lastStep);
-                var nextSteps = nextStepsCandidates.AsParallel().Where(x => x.Value > 0).Select(x => x.Key)
-                    .Where(candidate => reachibilityMatrix[candidate, destination] > 0 || candidate == destination);
-
-                foreach (var nextStep in nextSteps.Where(c => !path.Contains(c)).AsEnumerable())
-                {
-                    var pathCopy = await path.Clone();
-                    await pathCopy.Add(nextStep);
-                    using (await rwLock.WriterLockAsync()) forked.Add(pathCopy);
-                }
-            });
-
-            if (!forked.Any())
+            if (forked.Sum(x => x.Length) == pathes.Sum(x => x.Length))
             {
                 return pathes;
             }
 
-            var completedPathes = pathes.Where(path => path.Contains(destination));
-            forked.AddRange(completedPathes);
-
-            return await _fork(destination, forked, reachibilityMatrix, adjacencyMatrix).ConfigureAwait(false); //tail-recursive
+            return Fork(destination, forked, reachibilityMatrix, adjacencyMatrix); //tail-recursive
         }
 
+        private static IEnumerable<Path> Forking(IVertex destination, Matrix<bool> reachibilityMatrix, Matrix<bool> adjacencyMatrix, Path path)
+        {
+            var lastVertex = path.Last().End;
+
+            if (lastVertex == destination)
+                yield return path;
+            else
+            {
+                var nextStepsCandidates = adjacencyMatrix.GetRow(lastVertex);
+                var nextVertices = nextStepsCandidates.AsParallel().Where(x => x.Value).Select(x => x.Key)
+                    .Where(x => !path.Contains(x))
+                    .Where(candidate => reachibilityMatrix[candidate, destination] || candidate == destination)
+                    .ToArray();
+
+                var newSteps = lastVertex.Edges.SelectMany(x => x.Directions).Where(x => nextVertices.Contains(x.End));
+                foreach (var nextStep in newSteps)
+                {
+                    var pathCopy = path.Clone();
+                    pathCopy.Add(nextStep);
+                    yield return pathCopy;
+                }
+            }
+        }
+
+        private static IEnumerable<Path> InitialFork(IVertex destination, Matrix<bool> reachibilityMatrix, Matrix<bool> adjacencyMatrix, IVertex startVertex)
+        {
+            var lastVertex = startVertex;
+            var nextStepsCandidates = adjacencyMatrix.GetRow(lastVertex);
+            var nextVertices = nextStepsCandidates.AsParallel().Where(x => x.Value).Select(x => x.Key)
+                .Where(candidate => reachibilityMatrix[candidate, destination] || candidate == destination)
+                .ToArray();
+
+            var newSteps = lastVertex.Edges.SelectMany(x => x.Directions).Where(x => nextVertices.Contains(x.End));
+            foreach (var nextStep in newSteps)
+            {
+                yield return new Path(nextStep);
+            }
+        }
     }
 }

@@ -1,31 +1,72 @@
-using GraphStructure.Structure;
-using GraphStructure.Structure.Edges;
-using GraphStructure.Structure.Nodes;
+﻿using GraphStructure;
+using GraphStructure.Builder;
+using GraphStructure.Paths;
+using Moq;
 using Xunit;
 
 namespace Test
 {
+
+
+    public class PathFinderTest
+    {
+
+        [Fact]
+        public void DefaultPropertiesTest()
+        {
+            var graph = new Graph();
+            var firstVertex = new Vertex("Start (A)");
+            var mergeVertex = new Vertex("D");
+            var finishVertex = new Vertex("Finish (E)");
+
+            var firstVertexContext = graph.Builder.AddVertex(firstVertex);
+            firstVertexContext.ConnectWith(new Vertex("B")).ConnectWith(mergeVertex);
+            var mergeVertexContext = firstVertexContext.ConnectWith(new Vertex("C")).ConnectWith(mergeVertex);
+            mergeVertexContext.ConnectWith(finishVertex);
+
+            var pathFinder = new Pathfinder(graph);
+            var paths = pathFinder.GetAllBetween(firstVertex, finishVertex);
+        }
+
+    }
+
     public class GraphTest
     {
 
         [Fact]
-        public void HashCodeTest()
+        public void DefaultPropertiesTest()
         {
-            var graph = new Graph<int>();
-            var code0 = graph.GetHashCode();
-            var node0 = new Node<int>();
-            var node1 = new Node<int>();
+            var graph = new Graph();
 
-            graph.Add(node0);
-            graph.Add(node1);
-            var code1 = graph.GetHashCode();
+            Assert.NotNull(graph.Edges);
+            Assert.NotNull(graph.Vertices);
+            Assert.NotNull(graph.Builder);
+            Assert.Equal(0, graph.Order);
+            Assert.Equal(0, graph.Size);
+        }
 
-            graph.Add(new Edge<int>(node0, node1));
-            var code2 = graph.GetHashCode();
+        [Fact]
+        public void GraphStructureTest()
+        {
+            var graph = new Graph();
 
-            Assert.NotEqual(node0.GetHashCode(), code1.GetHashCode());
-            Assert.NotEqual(code0, code1);
-            Assert.NotEqual(code1, code2);
+            var v1 = new Mock<IVertex>();
+            var v2 = new Mock<IVertex>();
+            var v3 = new Mock<IVertex>();
+            var e1 = new Mock<IEdge>();
+            var e2 = new Mock<IEdge>();
+            v1.SetupGet(x => x.Edges).Returns(new[] { e1.Object });
+            v2.SetupGet(x => x.Edges).Returns(new[] { e2.Object, e2.Object });
+            v3.SetupGet(x => x.Edges).Returns(new[] { e2.Object });
+
+            graph.vertices.Add(v1.Object);
+            graph.vertices.Add(v2.Object);
+            graph.vertices.Add(v3.Object);
+
+            Assert.Equal(2, graph.Size);
+            Assert.Equal(2, graph.Edges.Count);
+            Assert.Equal(3, graph.Order);
+            Assert.Equal(3, graph.Vertices.Count);
         }
 
     }
